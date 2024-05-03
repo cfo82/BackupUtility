@@ -1,0 +1,32 @@
+﻿<UserControl x:Class="BackupUtilities.Wpf.Views.ToolBarView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:BackupUtilities.Wpf.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <ToolBar>
+            <Button Command="{Binding OpenCommand}" ToolTip="Open a database">
+                <Image Source="/Images/open_file.png" Width="32" Height="32" />
+            </Button>
+            <Button Command="{Binding CreateCommand}" ToolTip="Create a new database">
+                <Image Source="/Images/9069093_doc_add_icon.png" Width="32" Height="32" />
+            </Button>
+            <Separator/>
+            <Button Command="{Binding ScanFoldersCommand}" ToolTip="Scan Folders" IsEnabled="{Binding IsReady}">
+                <Image Source="/Images/9069097_folder_search_icon.png" Width="32" Height="32" />
+            </Button>
+            <Button Command="{Binding ScanFilesCommand}" ToolTip="Scan Files" IsEnabled="{Binding IsReady}">
+                <Image Source="/Images/9069051_doc_search_icon.png" Width="32" Height="32" />
+            </Button>
+            <Button Command="{Binding RunDuplicateFileAnalysisCommand}" ToolTip="Run Duplicate Files Analysis" IsEnabled="{Binding IsReady}">
+                <Image Source="/Images/9069548_copy_link_icon.png" Width="32" Height="32" />
+            </Button>
+            <Button Command="{Binding SearchOrphanedFilesCommand}" ToolTip="Find Orphaned Files" IsEnabled="{Binding IsReady}">
+                <Image Source="/Images/9069050_doc_fail_icon.png" Width="32" Height="32" />
+            </Button>
+        </ToolBar>
+    </Grid>
+</UserControl>

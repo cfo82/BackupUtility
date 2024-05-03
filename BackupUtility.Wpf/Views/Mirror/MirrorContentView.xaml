@@ -1,0 +1,27 @@
+<UserControl x:Class="BackupUtilities.Wpf.Views.Mirror.MirrorContentView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:converter="clr-namespace:BackupUtilities.Wpf.Converter"
+             mc:Ignorable="d"
+             d:DesignHeight="300" d:DesignWidth="300">
+    <UserControl.Resources>
+        <converter:DuplicatesBrushColorConverter x:Key="DuplicatesBrushColorConverter"/>
+    </UserControl.Resources>
+    <Grid>
+        <ListView ItemsSource="{Binding OrphanedFiles}" SelectedItem="{Binding SelectedFile, Mode=TwoWay}">
+            <ListView.ItemContainerStyle>
+                <Style TargetType="ListViewItem">
+                    <Setter Property="Background" Value="{Binding HasCopiesOnLiveDrive, Converter={StaticResource DuplicatesBrushColorConverter}}"/>
+                </Style>
+            </ListView.ItemContainerStyle>
+            <ListView.View>
+                <GridView>
+                    <GridViewColumn Header="Name" Width="300" DisplayMemberBinding="{Binding Name}"/>
+                    <GridViewColumn Header="Hash" Width="150" DisplayMemberBinding="{Binding Hash}"/>
+                </GridView>
+            </ListView.View>
+        </ListView>
+    </Grid>
+</UserControl>

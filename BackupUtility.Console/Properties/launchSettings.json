@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "BackupUtilities.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "run-all --database-path D:\\antibitrothashdb.db --log-file D:\\antibitrot.log --mirror-path E:\\ --ignore D:\\$RECYCLE.BIN --ignore D:\\OneDriveTemp --ignore \"D:\\System Volume Information\" D:\\"
+    }
+  }
+}

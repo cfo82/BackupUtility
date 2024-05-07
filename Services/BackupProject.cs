@@ -4,7 +4,6 @@ using System;
 using BackupUtilities.Data.Interfaces;
 using BackupUtilities.Data.Repositories;
 using BackupUtilities.Services.Interfaces;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 /// <summary>
 /// Default implementation of <see cref="IBackupProject"/>.
@@ -63,15 +62,16 @@ public class BackupProject : IBackupProject
     /// <returns>The newly created project.</returns>
     public static async Task<BackupProject> CreateBackupProjectAsync(DbContextData data)
     {
-        var settings = await data.SettingsRepository.GetSettingsAsync(data.Connection);
+        var settings = await data.SettingsRepository.GetSettingsAsync(data.Connection, null);
         return new BackupProject(data, settings);
     }
 
     /// <inheritdoc />
     public async Task<Settings> SaveSettingsAsync(Settings settings)
     {
-        await _data.SettingsRepository.UpdateSettingsAsync(_data.Connection, settings);
-        _settings = await _data.SettingsRepository.GetSettingsAsync(_data.Connection);
+        await _data.SettingsRepository.SaveSettingsAsync(_data.Connection, settings);
+        _settings = await _data.SettingsRepository.GetSettingsAsync(_data.Connection, null);
+
         UpdateIsReady();
         return _settings;
     }

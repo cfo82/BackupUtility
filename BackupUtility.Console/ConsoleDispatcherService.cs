@@ -18,4 +18,10 @@ public class ConsoleDispatcherService : IUiDispatcherService
     {
         action.Invoke();
     }
+
+    /// <inheritdoc />
+    public bool CheckAccess()
+    {
+        return true;
+    }
 }

@@ -57,7 +57,8 @@ public class TreeViewItemViewModel : BindableBase
     /// <summary>
     /// Gets a value indicating whether the folder contains duplicates.
     /// </summary>
-    public bool ContainsDuplicates => _folder.IsDuplicate == FolderDuplicationLevel.ContainsDuplicates;
+    public bool ContainsDuplicates => _folder.IsDuplicate == FolderDuplicationLevel.ContainsDuplicates ||
+        _folder.IsDuplicate == FolderDuplicationLevel.EntireContentAreDuplicates;
 
     /// <summary>
     /// Gets the name of this item.

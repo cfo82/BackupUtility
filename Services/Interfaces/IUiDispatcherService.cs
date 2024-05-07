@@ -17,4 +17,10 @@ public interface IUiDispatcherService
     /// Check that we are currently running on the UI thread.
     /// </summary>
     void CheckUiThread();
+
+    /// <summary>
+    /// Tests if the current thread is the UI thread.
+    /// </summary>
+    /// <returns><c>true</c> if we are running on the UI thread; <c>false</c> otherwise.</returns>
+    bool CheckAccess();
 }

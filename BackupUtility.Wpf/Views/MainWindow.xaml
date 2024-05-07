@@ -17,6 +17,9 @@
             <TabItem Header="Settings">
                 <ContentControl prism:RegionManager.RegionName="Region_MainWindow_Settings" />
             </TabItem>
+            <TabItem Header="Scans">
+                <ContentControl prism:RegionManager.RegionName="Region_MainWindow_Scans" />
+            </TabItem>
             <TabItem Header="Browse Files" IsEnabled="{Binding IsReady}">
                 <ContentControl prism:RegionManager.RegionName="Region_MainWindow_Working" />
             </TabItem>

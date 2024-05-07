@@ -39,8 +39,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+        <Resource Include="Images\9069845_copy_icon.png" />
         <Resource Include="Images\9069093_doc_add_icon.png" />
-		<Resource Include="Images\database_download_icon.ico" />
+        <Resource Include="Images\database_download_icon.ico" />
         <Resource Include="Images\create_file.png" />
         <Resource Include="Images\open_file.png" />
         <Resource Include="Images\9069051_doc_search_icon.png" />
@@ -49,6 +50,8 @@
         <Resource Include="Images\remove.png" />
         <Resource Include="Images\9069548_copy_link_icon.png" />
         <Resource Include="Images\9069050_doc_fail_icon.png" />
+        <Resource Include="Images\9070812_copy_one_icon.png" />
+        <Resource Include="Images\9070794_play_two_icon.png" />
     </ItemGroup>
 
 	<ItemGroup>

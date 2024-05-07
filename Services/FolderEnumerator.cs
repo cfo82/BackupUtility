@@ -40,7 +40,7 @@ public class FolderEnumerator : IFolderEnumerator
     {
         try
         {
-            await _longRunningOperationManager.BeginOperationAsync("Folder Enumeration");
+            await _longRunningOperationManager.BeginOperationAsync("Folder Enumeration", ScanType.FolderScan);
 
             var cs = new TaskCompletionSource();
 
@@ -58,17 +58,26 @@ public class FolderEnumerator : IFolderEnumerator
                         var settingsRepository = _projectManager.CurrentProject.Data.SettingsRepository;
                         var folderRepository = _projectManager.CurrentProject.Data.FolderRepository;
 
-                        var settings = await settingsRepository.GetSettingsAsync(connection);
+                        var settings = await settingsRepository.GetSettingsAsync(connection, null);
 
-                        await folderRepository.MarkAllFoldersAsUntouchedAsync(connection);
-
-                        var rootPath = settings.RootPath;
-                        var rootFolder = await folderRepository.SaveFullPathAsync(connection, rootPath, DriveType.Working);
-                        await folderRepository.TouchFolderAsync(connection, rootFolder);
-
-                        foreach (var subDirectory in Directory.GetDirectories(rootPath))
+                        using (var transaction = connection.BeginTransaction())
                         {
-                            await EnumerateFoldersRecursiveAsync(connection, folderRepository, rootFolder, subDirectory, settings);
+                            await folderRepository.MarkAllFoldersAsUntouchedAsync(connection);
+                            transaction.Commit();
+                        }
+
+                        using (var transaction = connection.BeginTransaction())
+                        {
+                            var rootPath = settings.RootPath;
+                            var rootFolder = await folderRepository.SaveFullPathAsync(connection, rootPath, DriveType.Working);
+                            await folderRepository.TouchFolderAsync(connection, rootFolder);
+
+                            foreach (var subDirectory in Directory.GetDirectories(rootPath))
+                            {
+                                await EnumerateFoldersRecursiveAsync(connection, folderRepository, rootFolder, subDirectory, settings);
+                            }
+
+                            transaction.Commit();
                         }
                     }
                     catch (Exception ex)

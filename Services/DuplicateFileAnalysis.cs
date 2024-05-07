@@ -44,7 +44,7 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
     {
         try
         {
-            await _longRunningOperationManager.BeginOperationAsync("Duplicate File Analysis");
+            await _longRunningOperationManager.BeginOperationAsync("Duplicate File Analysis", ScanType.DuplicateFileAnalysis);
 
             var cs = new TaskCompletionSource();
 
@@ -130,7 +130,7 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
         long folderCount,
         FolderCounter folderCounter)
     {
-        double percentage = (double)folderCounter.Index / (double)folderCount * 100;
+        double percentage = folderCounter.Index / (double)(folderCount - 1) * 100;
         ++folderCounter.Index;
         var status = $"{folderCounter.Index} / {folderCount}: Scanning for duplicates and calculating folder hash...";
         await _longRunningOperationManager.UpdateOperationAsync(status, percentage);
@@ -166,8 +166,8 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
         var allFilesAreDuplicates = files.All(f => f.IsDuplicate > 0);
         var hasDuplicates = files.Any(f => f.IsDuplicate > 0);
 
-        var allSubFoldersAreDuplicates = !subFolders.Any() || subFolders.All(f => f.IsDuplicate == FolderDuplicationLevel.EntireContentAreDuplicates);
-        var subFoldersContainDuplicates = !subFolders.Any() || subFolders.Any(f => f.IsDuplicate > 0);
+        var allSubFoldersAreDuplicates = subFolders.Any() && subFolders.All(f => f.IsDuplicate == FolderDuplicationLevel.EntireContentAreDuplicates);
+        var subFoldersContainDuplicates = subFolders.Any() && subFolders.Any(f => f.IsDuplicate > 0);
 
         FolderDuplicationLevel duplicationLevel = FolderDuplicationLevel.None;
         if (hasDuplicates || subFoldersContainDuplicates)
@@ -175,7 +175,7 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
             duplicationLevel = FolderDuplicationLevel.ContainsDuplicates;
         }
 
-        if (allFilesAreDuplicates && allSubFoldersAreDuplicates && (files.Any() || subFolders.Any()))
+        if ((!files.Any() || allFilesAreDuplicates) && (!subFolders.Any() || allSubFoldersAreDuplicates))
         {
             duplicationLevel = FolderDuplicationLevel.EntireContentAreDuplicates;
         }
@@ -196,7 +196,7 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
         }
 
         var hashContent = new List<byte>();
-        foreach (var file in files)
+        foreach (var file in files.OrderBy(f => f.Hash))
         {
             var hashString = file.Hash;
             hashContent.AddRange(Enumerable

@@ -3,7 +3,6 @@ namespace BackupUtilities.Wpf.ViewModels.Mirror;
 using System.Collections.ObjectModel;
 using BackupUtilities.Data.Interfaces;
 using BackupUtilities.Wpf.Contracts;
-using BackupUtilities.Wpf.Services;
 using Prism.Mvvm;
 
 /// <summary>

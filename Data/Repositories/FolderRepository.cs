@@ -32,19 +32,13 @@ public class FolderRepository : IFolderRepository
                     @"CREATE TABLE Folders(
                             Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                             ParentId INTEGER,
-                            Name TEXT,
-                            Touched INTEGER,
+                            Name TEXT NOT NULL,
+                            DriveType INTEGER NOT NULL DEFAULT 0,
+                            Touched INTEGER NOT NULL DEFAULT 0,
+                            Hash TEXT,
+                            IsDuplicate INTEGER NOT NULL DEFAULT 0,
                             FOREIGN KEY(ParentId) REFERENCES Folders(Id) ON DELETE CASCADE ON UPDATE NO ACTION
                         );");
-                break;
-            }
-
-        case 1:
-            {
-                await connection.ExecuteAsync(@"ALTER TABLE Folders ADD Hash TEXT;");
-                await connection.ExecuteAsync(@"ALTER TABLE Folders ADD IsDuplicate INTEGER NOT NULL DEFAULT 0;");
-                await connection.ExecuteAsync(@"ALTER TABLE Folders ADD DriveType INTEGER NOT NULL DEFAULT 0;");
-
                 await connection.ExecuteAsync(@"CREATE INDEX Folders_ParentId ON Folders(ParentId);");
                 break;
             }

@@ -31,10 +31,14 @@ public class BitRotRepository : IBitRotRepository
                 await connection.ExecuteAsync(
                     @"CREATE TABLE BitRot(
                             Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+                            ScanId INTEGER DEFAULT NULL,
                             FolderId INTEGER NOT NULL,
                             FileName TEXT NOT NULL,
+                            FOREIGN KEY(ScanId) REFERENCES Scans(Id) ON DELETE CASCADE ON UPDATE NO ACTION,
                             FOREIGN KEY(FolderId, FileName) REFERENCES Files(ParentId, Name) ON DELETE NO ACTION ON UPDATE NO ACTION
                         );");
+
+                await connection.ExecuteAsync(@"CREATE INDEX BitRot_ScanId ON BitRot(ScanId);");
                 break;
             }
         }

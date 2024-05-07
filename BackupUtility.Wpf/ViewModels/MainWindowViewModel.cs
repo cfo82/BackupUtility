@@ -91,6 +91,6 @@ public class MainWindowViewModel : BindableBase
 
     private void OnLongRunningOperationChanged(object? sender, EventArgs e)
     {
-        IsLongRunningOperationInProgress = _longRunningOperationManager.IsRunning;
+        // IsLongRunningOperationInProgress = _longRunningOperationManager.IsRunning;
     }
 }

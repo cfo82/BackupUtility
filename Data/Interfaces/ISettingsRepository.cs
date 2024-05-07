@@ -12,8 +12,9 @@ public interface ISettingsRepository : IRepository
     /// Return the settings that are stored inside the database.
     /// </summary>
     /// <param name="connection">The database connection representing the database.</param>
+    /// <param name="scan">Get the settings for this scan. If its null it returns the currently valid settings.</param>
     /// <returns>The settings.</returns>
-    Task<Settings> GetSettingsAsync(IDbConnection connection);
+    Task<Settings> GetSettingsAsync(IDbConnection connection, Scan? scan);
 
     /// <summary>
     /// Updates the settings inside the database.
@@ -21,5 +22,5 @@ public interface ISettingsRepository : IRepository
     /// <param name="connection">The database connection representing the database.</param>
     /// <param name="settings">The settings to be saved.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
-    Task UpdateSettingsAsync(IDbConnection connection, Settings settings);
+    Task SaveSettingsAsync(IDbConnection connection, Settings settings);
 }

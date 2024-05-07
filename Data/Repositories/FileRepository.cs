@@ -10,6 +10,7 @@ using Dapper;
 /// </summary>
 public class FileRepository : IFileRepository
 {
+    private const string _emptyFileHash = "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e";
     private readonly DbContextData _context;
 
     /// <summary>
@@ -32,22 +33,17 @@ public class FileRepository : IFileRepository
                     @"CREATE TABLE Files(
                             ParentId INTEGER NOT NULL,
                             Name TEXT NOT NULL,
-                            IntroHash TEXT,
-                            Hash TEXT,
-                            LastWriteTime TEXT,
-                            Touched INTEGER,
+                            IntroHash TEXT NOT NULL,
+                            Hash TEXT NOT NULL,
+                            LastWriteTime TEXT NOT NULL,
+                            Touched INTEGER NOT NULL DEFAULT 0,
+                            IsDuplicate INTEGER NOT NULL DEFAULT 0,
                             PRIMARY KEY (ParentId, Name)
                             FOREIGN KEY(ParentId) REFERENCES Folders(Id) ON DELETE CASCADE ON UPDATE NO ACTION
                         );");
                 await connection.ExecuteAsync(@"CREATE INDEX Files_IntroHash ON Files(IntroHash);");
                 await connection.ExecuteAsync(@"CREATE INDEX Files_Hash ON Files(Hash);");
-                break;
-            }
-
-        case 1:
-            {
                 await connection.ExecuteAsync(@"CREATE INDEX Files_ParentId ON Files(ParentId);");
-                await connection.ExecuteAsync(@"ALTER TABLE Files ADD IsDuplicate INTEGER NOT NULL DEFAULT 0;");
                 break;
             }
         }
@@ -262,8 +258,13 @@ public class FileRepository : IFileRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<File>> EnumerateDuplicatesOfFile(IDbConnection connection, File file)
+    public async Task<IEnumerable<File>> EnumerateDuplicatesOfFile(IDbConnection connection, BaseFile file)
     {
+        if (string.Equals(file.Hash, _emptyFileHash))
+        {
+            return Enumerable.Empty<File>();
+        }
+
         return await connection.QueryAsync<File>(
             @"SELECT
                 ParentId,
@@ -284,6 +285,11 @@ public class FileRepository : IFileRepository
     /// <inheritdoc />
     public async Task<IEnumerable<File>> EnumerateDuplicatesWithHash(IDbConnection connection, string hash)
     {
+        if (string.Equals(hash, _emptyFileHash))
+        {
+            return Enumerable.Empty<File>();
+        }
+
         return await connection.QueryAsync<File>(
             @"SELECT
                 ParentId,

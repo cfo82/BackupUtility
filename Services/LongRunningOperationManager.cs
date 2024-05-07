@@ -12,6 +12,7 @@ public class LongRunningOperationManager : ILongRunningOperationManager
     private readonly IUiDispatcherService _uiDispatcherService;
     private bool _isRunning;
     private string _title;
+    private ScanType _scanType;
     private string _text;
     private double? _progress;
 
@@ -39,24 +40,37 @@ public class LongRunningOperationManager : ILongRunningOperationManager
     public string Title => _title;
 
     /// <inheritdoc />
+    public ScanType ScanType => _scanType;
+
+    /// <inheritdoc />
     public string Text => _text;
 
     /// <inheritdoc />
     public double? Percentage => _progress;
 
     /// <inheritdoc />
-    public async Task BeginOperationAsync(string title)
+    public async Task BeginOperationAsync(string title, ScanType scanType)
     {
-        var completionSource = new TaskCompletionSource();
-        _uiDispatcherService.Post(() =>
+        if (_uiDispatcherService.CheckAccess())
         {
             _isRunning = true;
             _title = title;
+            _scanType = scanType;
             OperationChanged?.Invoke(this, EventArgs.Empty);
-            completionSource.SetResult();
-        });
+        }
+        else
+        {
+            var completionSource = new TaskCompletionSource();
+            _uiDispatcherService.Post(() =>
+            {
+                _isRunning = true;
+                _title = title;
+                OperationChanged?.Invoke(this, EventArgs.Empty);
+                completionSource.SetResult();
+            });
 
-        await completionSource.Task;
+            await completionSource.Task;
+        }
     }
 
     /// <inheritdoc />

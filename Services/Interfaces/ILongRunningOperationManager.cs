@@ -21,6 +21,11 @@ public interface ILongRunningOperationManager
     public string Title { get; }
 
     /// <summary>
+    /// Gets the current type of operation.
+    /// </summary>
+    public ScanType ScanType { get; }
+
+    /// <summary>
     /// Gets the current status as a text.
     /// </summary>
     public string Text { get; }
@@ -35,8 +40,9 @@ public interface ILongRunningOperationManager
     /// Begin a new long running operation.
     /// </summary>
     /// <param name="title">The operations title.</param>
+    /// <param name="scanType">The type of scan that is running.</param>
     /// <returns>A task for async programming.</returns>
-    Task BeginOperationAsync(string title);
+    Task BeginOperationAsync(string title, ScanType scanType);
 
     /// <summary>
     /// Update the current long running operation.

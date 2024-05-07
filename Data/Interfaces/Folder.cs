@@ -40,7 +40,7 @@ public class Folder
     /// <summary>
     /// Gets or sets the folders hash value. The hash value is computed as a combined hash of its content (files and folders).
     /// </summary>
-    public string Hash { get; set; } = string.Empty;
+    public string? Hash { get; set; }
 
     /// <summary>
     /// Gets or sets a value indicating whether this folder is a duplicate. This flag is set during duplicate file analysis.

@@ -74,7 +74,7 @@ public class FolderTreeViewModel : BindableBase
             var settingsRepository = _currentProject.Data.SettingsRepository;
             var folderRepository = _currentProject.Data.FolderRepository;
 
-            var settings = await settingsRepository.GetSettingsAsync(connection);
+            var settings = await settingsRepository.GetSettingsAsync(connection, null);
             var rootFolder = await folderRepository.GetFolderAsync(connection, settings.RootPath);
             if (rootFolder != null)
             {

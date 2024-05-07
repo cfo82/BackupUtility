@@ -1,6 +1,5 @@
 using BackupUtilities.Console;
 using BackupUtilities.Data.Interfaces;
-using BackupUtilities.Data.Repositories;
 using BackupUtilities.Services;
 using Cocona;
 using Microsoft.Extensions.Logging;

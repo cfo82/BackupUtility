@@ -277,6 +277,7 @@ public class SettingsViewModel : BindableBase
 
             _settings = new Settings()
             {
+                SettingsId = _settings?.SettingsId ?? 0,
                 RootPath = RootPath,
                 MirrorPath = MirrorPath,
                 IgnoredFolders = IgnoredFolders.Select(f => f.IgnoredFolder).ToList(),
@@ -314,7 +315,7 @@ public class SettingsViewModel : BindableBase
             var connection = _projectManager.CurrentProject.Data.Connection;
             var settingsRepository = _projectManager.CurrentProject.Data.SettingsRepository;
 
-            _settings = await settingsRepository.GetSettingsAsync(connection);
+            _settings = await settingsRepository.GetSettingsAsync(connection, null);
             RootPath = _settings.RootPath;
             MirrorPath = _settings.MirrorPath;
             IgnoredFolders.Clear();

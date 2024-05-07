@@ -42,7 +42,7 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
     {
         try
         {
-            await _longRunningOperationManager.BeginOperationAsync("Orphaned File Enumeration");
+            await _longRunningOperationManager.BeginOperationAsync("Orphaned File Enumeration", ScanType.OrphanedFileScan);
 
             var cs = new TaskCompletionSource();
 
@@ -61,15 +61,15 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
                         var folderRepository = _projectManager.CurrentProject.Data.FolderRepository;
                         var orphanedFilesRepository = _projectManager.CurrentProject.Data.OrphanedFileRepository;
 
-                        var settings = await settingsRepository.GetSettingsAsync(connection);
+                        var settings = await settingsRepository.GetSettingsAsync(connection, null);
 
-                        /*using (var transaction = connection.BeginTransaction())
+                        using (var transaction = connection.BeginTransaction())
                         {
                             await _longRunningOperationManager.UpdateOperationAsync("Enumerate orphaned files...", null);
                             await orphanedFilesRepository.DeleteAllAsync(connection);
                             await EnumerateOrphanedFilesRecursiveAsync(connection, folderRepository, orphanedFilesRepository, settings.MirrorPath, settings.RootPath, settings);
                             transaction.Commit();
-                        }*/
+                        }
 
                         using (var transaction = connection.BeginTransaction())
                         {
@@ -209,7 +209,7 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
         long folderCount,
         FolderCounter folderCounter)
     {
-        double percentage = (double)folderCounter.Index / (double)folderCount * 100;
+        double percentage = folderCounter.Index / (double)(folderCount - 1) * 100;
         ++folderCounter.Index;
         await _longRunningOperationManager.UpdateOperationAsync(percentage);
 
@@ -266,7 +266,7 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
         }
 
         var hashContent = new List<byte>();
-        foreach (var file in files)
+        foreach (var file in files.OrderBy(f => f.Hash))
         {
             var hashString = file.Hash;
             hashContent.AddRange(Enumerable

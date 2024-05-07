@@ -10,14 +10,17 @@ using Dapper;
 public class OrphanedFileRepository : IOrphanedFileRepository
 {
     private readonly DbContextData _context;
+    private readonly IFileRepository _fileRepository;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrphanedFileRepository"/> class.
     /// </summary>
     /// <param name="context">The db contect that owns this repository.</param>
-    public OrphanedFileRepository(DbContextData context)
+    /// <param name="fileRepository">The file repository of the current database.</param>
+    public OrphanedFileRepository(DbContextData context, IFileRepository fileRepository)
     {
         _context = context;
+        _fileRepository = fileRepository;
     }
 
     /// <inheritdoc />
@@ -27,13 +30,6 @@ public class OrphanedFileRepository : IOrphanedFileRepository
         {
         case 0:
             {
-                await connection.ExecuteAsync("CREATE TABLE OrphanedFiles(FullPath TEXT NOT NULL PRIMARY KEY);");
-                break;
-            }
-
-        case 1:
-            {
-                await connection.ExecuteAsync("DROP TABLE OrphanedFiles;");
                 await connection.ExecuteAsync(
                     @"CREATE TABLE OrphanedFiles(
                             ParentId INTEGER NOT NULL,
@@ -106,47 +102,25 @@ public class OrphanedFileRepository : IOrphanedFileRepository
         }
         else
         {
-            var sql = @"
-                SELECT
-                    of.ParentId,
-                    of.Name,
-                    of.Hash,
-                    f.ParentId,
-                    f.Name,
-                    f.IntroHash,
-                    f.Hash,
-                    f.LastWriteTime,
-                    f.Touched,
-                    f.IsDuplicate
+            var orphanedFiles = await connection.QueryAsync<OrphanedFile>(
+                @"SELECT
+                    ParentId,
+                    Name,
+                    Hash
                 FROM
-                    OrphanedFiles of
-                LEFT JOIN
-                    Files f
-                ON
-                    of.Hash = f.Hash
+                    OrphanedFiles
                 WHERE
-                    of.ParentId = @Id;";
+                    ParentId = @Id",
+                parent);
 
-            var resultSet = await connection.QueryAsync<OrphanedFile, File, OrphanedFile>(
-                sql,
-                (orphanedFile, file) =>
-                {
-                    if (file != null)
-                    {
-                        orphanedFile.DuplicatesOnLifeDrive.Add(file);
-                    }
+            foreach (var file in orphanedFiles)
+            {
+                var duplicates = await _fileRepository.EnumerateDuplicatesWithHash(connection, file.Hash);
+                file.DuplicatesOnLifeDrive.AddRange(duplicates);
+                file.NumCopiesOnLiveDrive = file.DuplicatesOnLifeDrive.Count;
+            }
 
-                    return orphanedFile;
-                },
-                parent,
-                splitOn: "ParentId,Name");
-
-            return resultSet.Select(
-                file =>
-                {
-                    file.NumCopiesOnLiveDrive = file.DuplicatesOnLifeDrive.Count;
-                    return file;
-                });
+            return orphanedFiles;
         }
     }
 }

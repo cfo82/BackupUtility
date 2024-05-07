@@ -13,6 +13,11 @@ public interface IDbContextData : IDisposable
     public IDbConnection Connection { get; }
 
     /// <summary>
+    /// Gets the repository to start and manage drive scans.
+    /// </summary>
+    public IScanRepository ScanRepository { get; }
+
+    /// <summary>
     /// Gets the repository containing the settings of the database.
     /// </summary>
     public ISettingsRepository SettingsRepository { get; }

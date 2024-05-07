@@ -34,4 +34,10 @@ public class UiDispatcherService : IUiDispatcherService
             throw new InvalidOperationException("Must be running on the UI thread.");
         }
     }
+
+    /// <inheritdoc />
+    public bool CheckAccess()
+    {
+        return Application.Current.Dispatcher.Thread == Thread.CurrentThread;
+    }
 }

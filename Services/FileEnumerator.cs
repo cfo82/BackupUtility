@@ -43,7 +43,7 @@ public class FileEnumerator : IFileEnumerator
     {
         try
         {
-            await _longRunningOperationManager.BeginOperationAsync("File Enumeration");
+            await _longRunningOperationManager.BeginOperationAsync("File Enumeration", ScanType.FileScan);
 
             var cs = new TaskCompletionSource();
 
@@ -63,16 +63,19 @@ public class FileEnumerator : IFileEnumerator
                         var fileRepository = _projectManager.CurrentProject.Data.FileRepository;
                         var bitRotRepository = _projectManager.CurrentProject.Data.BitRotRepository;
 
-                        var settings = await settingsRepository.GetSettingsAsync(connection);
+                        var settings = await settingsRepository.GetSettingsAsync(connection, null);
 
                         if (!continueLastScan)
                         {
-                            await fileRepository.MarkAllFilesAsUntouchedAsync(connection);
-                            await bitRotRepository.ClearAsync(connection);
+                            using (var transaction = connection.BeginTransaction())
+                            {
+                                await fileRepository.MarkAllFilesAsUntouchedAsync(connection);
+                                await bitRotRepository.ClearAsync(connection);
+                                transaction.Commit();
+                            }
                         }
 
                         await EnumerateFilesRecursiveAsync(connection, folderRepository, fileRepository, bitRotRepository, null, settings.RootPath, settings, continueLastScan);
-                        await fileRepository.FindDuplicateFilesAsync(connection);
                     }
                     catch (Exception ex)
                     {

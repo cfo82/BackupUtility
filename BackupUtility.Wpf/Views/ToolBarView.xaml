@@ -14,19 +14,6 @@
             <Button Command="{Binding CreateCommand}" ToolTip="Create a new database">
                 <Image Source="/Images/9069093_doc_add_icon.png" Width="32" Height="32" />
             </Button>
-            <Separator/>
-            <Button Command="{Binding ScanFoldersCommand}" ToolTip="Scan Folders" IsEnabled="{Binding IsReady}">
-                <Image Source="/Images/9069097_folder_search_icon.png" Width="32" Height="32" />
-            </Button>
-            <Button Command="{Binding ScanFilesCommand}" ToolTip="Scan Files" IsEnabled="{Binding IsReady}">
-                <Image Source="/Images/9069051_doc_search_icon.png" Width="32" Height="32" />
-            </Button>
-            <Button Command="{Binding RunDuplicateFileAnalysisCommand}" ToolTip="Run Duplicate Files Analysis" IsEnabled="{Binding IsReady}">
-                <Image Source="/Images/9069548_copy_link_icon.png" Width="32" Height="32" />
-            </Button>
-            <Button Command="{Binding SearchOrphanedFilesCommand}" ToolTip="Find Orphaned Files" IsEnabled="{Binding IsReady}">
-                <Image Source="/Images/9069050_doc_fail_icon.png" Width="32" Height="32" />
-            </Button>
         </ToolBar>
     </Grid>
 </UserControl>

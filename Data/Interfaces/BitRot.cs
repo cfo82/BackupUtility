@@ -15,6 +15,11 @@ public class BitRot
     public long Id { get; set; }
 
     /// <summary>
+    /// Gets or sets the id of the scan during which this entity was found.
+    /// </summary>
+    public long? ScanId { get; set; }
+
+    /// <summary>
     /// Gets or sets the <see cref="Folder.Id"/> of the folder containing the file with bitrot. This is part of the
     /// combined foreign key to <see cref="File"/> together with <see cref="FileName"/>.
     /// </summary>

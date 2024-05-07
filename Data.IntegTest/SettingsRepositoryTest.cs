@@ -47,7 +47,7 @@ public class SettingsRepositoryTest
         var sut = new SettingsRepository(_dbContext);
 
         // Act
-        var settings = await sut.GetSettingsAsync(_dbContext.Connection);
+        var settings = await sut.GetSettingsAsync(_dbContext.Connection, null);
 
         // Assert
         Assert.AreEqual(settings.SettingsId, 0);
@@ -78,16 +78,16 @@ public class SettingsRepositoryTest
         };
 
         // Act
-        await sut.UpdateSettingsAsync(_dbContext.Connection, settings);
-        var settingsRead = await sut.GetSettingsAsync(_dbContext.Connection);
+        await sut.SaveSettingsAsync(_dbContext.Connection, settings);
+        var settingsRead = await sut.GetSettingsAsync(_dbContext.Connection, null);
 
         // Assert
-        Assert.AreEqual(settings.SettingsId, 0);
-        Assert.AreEqual("D:\\", settings.RootPath);
-        Assert.AreEqual("E:\\", settings.MirrorPath);
-        Assert.AreEqual(2, settings.IgnoredFolders.Count);
-        Assert.AreEqual("D:\\$RECYCLE.BIN", settings.IgnoredFolders[0].Path);
-        Assert.AreEqual("D:\\OneDriveTemp", settings.IgnoredFolders[1].Path);
+        Assert.AreEqual(1, settingsRead.SettingsId);
+        Assert.AreEqual("D:\\", settingsRead.RootPath);
+        Assert.AreEqual("E:\\", settingsRead.MirrorPath);
+        Assert.AreEqual(2, settingsRead.IgnoredFolders.Count);
+        Assert.AreEqual("D:\\$RECYCLE.BIN", settingsRead.IgnoredFolders[0].Path);
+        Assert.AreEqual("D:\\OneDriveTemp", settingsRead.IgnoredFolders[1].Path);
     }
 
     /// <summary>

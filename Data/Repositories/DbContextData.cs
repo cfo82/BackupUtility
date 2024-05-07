@@ -21,15 +21,19 @@ public class DbContextData : IDbContextData
     {
         _connection = new SqliteConnection($"Data Source={dbPath}");
 
+        ScanRepository = new ScanRepository(this);
         SettingsRepository = new SettingsRepository(this);
         FolderRepository = new FolderRepository(this);
         FileRepository = new FileRepository(this);
         BitRotRepository = new BitRotRepository(this);
-        OrphanedFileRepository = new OrphanedFileRepository(this);
+        OrphanedFileRepository = new OrphanedFileRepository(this, FileRepository);
     }
 
     /// <inheritdoc />
     public IDbConnection Connection => _connection;
+
+    /// <inheritdoc />
+    public IScanRepository ScanRepository { get; }
 
     /// <inheritdoc />
     public ISettingsRepository SettingsRepository { get; }
@@ -58,22 +62,20 @@ public class DbContextData : IDbContextData
         {
             var version = await Connection.QuerySingleAsync<int>("PRAGMA schema_version;");
 
-            if (version == 0)
+            if (version < 2)
             {
+                using var transaction = _connection.BeginTransaction();
+
+                await ScanRepository.InitAsync(Connection, version);
                 await SettingsRepository.InitAsync(Connection, version);
                 await FolderRepository.InitAsync(Connection, version);
                 await FileRepository.InitAsync(Connection, version);
                 await BitRotRepository.InitAsync(Connection, version);
                 await OrphanedFileRepository.InitAsync(Connection, version);
 
-                await Connection.ExecuteAsync("PRAGMA schema_version = 1;");
-            }
-            else if (version == 1)
-            {
-                await FolderRepository.InitAsync(Connection, version);
-                await FileRepository.InitAsync(Connection, version);
-                await OrphanedFileRepository.InitAsync(Connection, version);
-                await Connection.ExecuteAsync("PRAGMA schema_version = 2;");
+                await Connection.ExecuteAsync($"PRAGMA schema_version = {version + 1};");
+
+                transaction.Commit();
             }
             else
             {

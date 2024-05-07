@@ -90,7 +90,7 @@ public interface IFileRepository : IRepository
     /// <param name="connection">The connection to the database.</param>
     /// /// <param name="file">The file for which duplicates are to be located.</param>
     /// <returns>An enumeration of files that are duplicates of the given file.</returns>
-    Task<IEnumerable<File>> EnumerateDuplicatesOfFile(IDbConnection connection, File file);
+    Task<IEnumerable<File>> EnumerateDuplicatesOfFile(IDbConnection connection, BaseFile file);
 
     /// <summary>
     /// Searches for files with the given hash and returns them.

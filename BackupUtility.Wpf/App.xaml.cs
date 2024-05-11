@@ -10,6 +10,7 @@ using BackupUtilities.Wpf.Contracts;
 using BackupUtilities.Wpf.Services;
 using BackupUtilities.Wpf.ViewModels;
 using BackupUtilities.Wpf.ViewModels.Mirror;
+using BackupUtilities.Wpf.ViewModels.Scans;
 using BackupUtilities.Wpf.ViewModels.Settings;
 using BackupUtilities.Wpf.ViewModels.Working;
 using BackupUtilities.Wpf.Views;
@@ -61,12 +62,13 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<ISelectedFileService, SelectedFileService>();
         containerRegistry.RegisterSingleton<IProjectManager, ProjectManager>();
         containerRegistry.RegisterSingleton<IUiDispatcherService, UiDispatcherService>();
-        containerRegistry.RegisterSingleton<ILongRunningOperationManager, LongRunningOperationManager>();
+        containerRegistry.RegisterSingleton<IScanStatusManager, ScanStatusManager>();
         containerRegistry.RegisterSingleton<IErrorHandler, ErrorHandler>();
         containerRegistry.Register<IFolderEnumerator, FolderEnumerator>();
         containerRegistry.Register<IFileEnumerator, FileEnumerator>();
         containerRegistry.Register<IDuplicateFileAnalysis, DuplicateFileAnalysis>();
         containerRegistry.Register<IOrphanedFileEnumerator, OrphanedFileEnumerator>();
+        containerRegistry.Register<ICompleteScan, CompleteScan>();
         containerRegistry.Register(typeof(ILogger<>), typeof(Logger<>));
 
         // Views - Generic
@@ -75,7 +77,6 @@ public partial class App : PrismApplication
         containerRegistry.RegisterForNavigation<MainWindow, MainWindowViewModel>();
         containerRegistry.RegisterForNavigation<ToolBarView, ToolBarViewModel>();
         containerRegistry.RegisterForNavigation<SettingsView, SettingsViewModel>();
-        containerRegistry.RegisterForNavigation<LongRunningOperationStatusView, LongRunningOperationStatusViewModel>();
 
         containerRegistry.RegisterForNavigation<WorkingView, WorkingViewModel>();
         containerRegistry.RegisterForNavigation<FolderTreeView, FolderTreeViewModel>();
@@ -115,7 +116,6 @@ public partial class App : PrismApplication
         regionManager.RegisterViewWithRegion("Region_MainWindow_Scans", typeof(ScanView));
         regionManager.RegisterViewWithRegion("Region_MainWindow_Working", typeof(WorkingView));
         regionManager.RegisterViewWithRegion("Region_MainWindow_Mirror", typeof(MirrorView));
-        regionManager.RegisterViewWithRegion("Region_MainWindow_LongRunningOperation", typeof(LongRunningOperationStatusView));
 
         regionManager.RegisterViewWithRegion("Region_Working_FolderTree", typeof(FolderTreeView));
         regionManager.RegisterViewWithRegion("Region_Working_FolderContent", typeof(FolderContentView));
@@ -126,6 +126,8 @@ public partial class App : PrismApplication
         regionManager.RegisterViewWithRegion("Region_Mirror_Content", typeof(MirrorContentView));
         regionManager.RegisterViewWithRegion("Region_Mirror_FolderDetails", typeof(MirrorFolderDetailsView));
         regionManager.RegisterViewWithRegion("Region_Mirror_FileDetails", typeof(MirrorFileDetailsView));
+
+        regionManager.RegisterViewWithRegion("Region_Scan_Details", typeof(SimpleScanView));
 
         base.OnInitialized();
     }

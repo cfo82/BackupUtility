@@ -45,29 +45,26 @@ public class BitRotRepository : IBitRotRepository
     }
 
     /// <inheritdoc />
-    public async Task ClearAsync(IDbConnection connection)
+    public async Task<BitRot> CreateBitRotAsync(Scan scan, File file)
     {
-        await connection.ExecuteAsync("DELETE FROM BitRot;");
-    }
-
-    /// <inheritdoc />
-    public async Task<BitRot> CreateBitRotAsync(IDbConnection connection, File file)
-    {
-        long bitrotId = await connection.QuerySingleAsync<long>(
+        long bitrotId = await _context.Connection.QuerySingleAsync<long>(
             @"INSERT INTO BitRot(
+                ScanId,
                 FolderId,
                 FileName
             )
             VALUES (
+                @ScanId,
                 @ParentId,
                 @Name
             );
             SELECT last_insert_rowid();",
-            file);
+            new { ScanId = scan.Id, ParentId = file.ParentId, Name = file.Name });
 
-        return await connection.QuerySingleAsync<BitRot>(
+        return await _context.Connection.QuerySingleAsync<BitRot>(
             @"SELECT
                 Id,
+                ScanId,
                 FolderId,
                 FileName
             FROM
@@ -78,9 +75,10 @@ public class BitRotRepository : IBitRotRepository
     }
 
     /// <inheritdoc />
-    public async Task DeleteAllAsync(IDbConnection connection)
+    public async Task DeleteAllAsync(Scan scan)
     {
-        await connection.ExecuteAsync(
-            @"DELETE FROM BitRot;");
+        await _context.Connection.ExecuteAsync(
+            @"DELETE FROM BitRot WHERE ScanId = @ScanId;",
+            new { ScanId = scan.Id });
     }
 }

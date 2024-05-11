@@ -276,7 +276,8 @@ public class FolderRepository : IFolderRepository
             FROM
                 Folders
             WHERE
-                parentId = @Id;",
+                ParentId = @Id AND
+                Touched = 1;",
             folder);
     }
 

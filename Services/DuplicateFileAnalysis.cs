@@ -17,8 +17,7 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
 {
     private readonly ILogger<DuplicateFileAnalysis> _logger;
     private readonly IProjectManager _projectManager;
-    private readonly ILongRunningOperationManager _longRunningOperationManager;
-    private readonly IErrorHandler _errorHandler;
+    private readonly IScanStatus _scanStatus;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="DuplicateFileAnalysis"/> class.
@@ -26,17 +25,14 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
     /// <param name="logger">A new logger instance to be used.</param>
     /// <param name="projectManager">The project manager.</param>
     /// <param name="longRunningOperationManager">The long running operation manager.</param>
-    /// <param name="errorHandler">The error handler to use.</param>
     public DuplicateFileAnalysis(
         ILogger<DuplicateFileAnalysis> logger,
         IProjectManager projectManager,
-        ILongRunningOperationManager longRunningOperationManager,
-        IErrorHandler errorHandler)
+        IScanStatusManager longRunningOperationManager)
     {
         _logger = logger;
         _projectManager = projectManager;
-        _longRunningOperationManager = longRunningOperationManager;
-        _errorHandler = errorHandler;
+        _scanStatus = longRunningOperationManager.FullScanStatus.DuplicateFileAnalysisStatus;
     }
 
     /// <inheritdoc />
@@ -44,7 +40,7 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
     {
         try
         {
-            await _longRunningOperationManager.BeginOperationAsync("Duplicate File Analysis", ScanType.DuplicateFileAnalysis);
+            await _scanStatus.BeginAsync();
 
             var cs = new TaskCompletionSource();
 
@@ -53,30 +49,36 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
                 {
                     try
                     {
-                        if (_projectManager.CurrentProject == null || !_projectManager.CurrentProject.IsReady)
+                        var currentProject = _projectManager.CurrentProject;
+                        var currentScan = currentProject?.CurrentScan;
+
+                        if (currentProject == null || !currentProject.IsReady)
                         {
                             throw new InvalidOperationException("Project is not opened or not ready.");
                         }
 
-                        var connection = _projectManager.CurrentProject.Data.Connection;
-                        var folderRepository = _projectManager.CurrentProject.Data.FolderRepository;
-                        var fileRepository = _projectManager.CurrentProject.Data.FileRepository;
+                        if (currentScan == null)
+                        {
+                            throw new InvalidOperationException("No current scan is available.");
+                        }
 
-                        /* var rootFolders = new List<FolderTreeNode>();
-                        var folderSet = new Dictionary<long, FolderTreeNode>();*/
+                        var connection = currentProject.Data.Connection;
+                        var folderRepository = currentProject.Data.FolderRepository;
+                        var fileRepository = currentProject.Data.FileRepository;
+
+                        await currentScan.UpdateDuplicateFileAnalysisDataAsync(connection, false, DateTime.Now, null);
 
                         await RemoveAllDuplicationMarksAsync(connection, folderRepository, fileRepository);
 
                         await ProcessTreeAsync(connection, folderRepository, fileRepository);
 
                         await ProcessDuplicateFoldersAsync(connection, folderRepository);
-                        // await EnumerateAndMarkDuplicates(connection, folderRepository, fileRepository, rootFolders, folderSet);
 
-                        // await CalculateFolderHashes(connection, folderRepository, fileRepository, rootFolders, folderSet);
+                        await currentScan.UpdateDuplicateFileAnalysisDataAsync(connection, true, currentScan.Data.FolderScanStartDate, DateTime.Now);
                     }
                     catch (Exception ex)
                     {
-                        _errorHandler.Error = ex;
+                        cs.SetException(ex);
                     }
 
                     cs.SetResult();
@@ -86,7 +88,7 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
         }
         finally
         {
-            await _longRunningOperationManager.EndOperationAsync();
+            await _scanStatus.EndAsync();
         }
     }
 
@@ -94,10 +96,10 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
     {
         using var transaction = connection.BeginTransaction();
 
-        await _longRunningOperationManager.UpdateOperationAsync("Remove duplication marks from files...", null);
+        await _scanStatus.UpdateAsync("Remove duplication marks from files...", null);
         await fileRepository.RemoveAllDuplicateMarks(connection);
 
-        await _longRunningOperationManager.UpdateOperationAsync("Remove duplication marks from folders...", null);
+        await _scanStatus.UpdateAsync("Remove duplication marks from folders...", null);
         await folderRepository.RemoveAllDuplicateMarks(connection, DriveType.Working);
 
         transaction.Commit();
@@ -130,10 +132,10 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
         long folderCount,
         FolderCounter folderCounter)
     {
-        double percentage = folderCounter.Index / (double)(folderCount - 1) * 100;
+        double percentage = folderCounter.Index / (double)(folderCount - 1);
         ++folderCounter.Index;
         var status = $"{folderCounter.Index} / {folderCount}: Scanning for duplicates and calculating folder hash...";
-        await _longRunningOperationManager.UpdateOperationAsync(status, percentage);
+        await _scanStatus.UpdateAsync(status, percentage);
         _logger.LogInformation(status);
 
         var subFolders = await folderRepository.GetSubFoldersAsync(connection, folder);

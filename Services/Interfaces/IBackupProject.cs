@@ -13,6 +13,11 @@ public interface IBackupProject : IDisposable
     event EventHandler<EventArgs>? IsReadyChanged;
 
     /// <summary>
+    /// This event is fired whenever the current scan changed.
+    /// </summary>
+    event EventHandler<EventArgs>? CurrentScanChanged;
+
+    /// <summary>
     /// Gets acess to the project data.
     /// </summary>
     IDbContextData Data { get; }
@@ -29,9 +34,21 @@ public interface IBackupProject : IDisposable
     bool IsReady { get; }
 
     /// <summary>
+    /// Gets the current scan.
+    /// </summary>
+    IScan? CurrentScan { get; }
+
+    /// <summary>
     /// Save new settings for this project.
     /// </summary>
     /// <param name="settings">The settings that are to be saved.</param>
     /// <returns>Returns the settings as they have been saved.</returns>
     Task<Settings> SaveSettingsAsync(Settings settings);
+
+    /// <summary>
+    /// Create a new scan. There is only one current scan at a time. So when creating a new scan
+    /// the current scan is closed and the new scan becomes the current scan.
+    /// </summary>
+    /// <returns>Reference to the new scan.</returns>
+    Task<IScan> CreateScanAsync();
 }

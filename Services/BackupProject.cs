@@ -13,6 +13,7 @@ public class BackupProject : IBackupProject
     private DbContextData _data;
     private Settings _settings;
     private bool _isReady;
+    private IScan? _currentScan;
     private bool _disposedValue;
 
     /// <summary>
@@ -20,15 +21,24 @@ public class BackupProject : IBackupProject
     /// </summary>
     /// <param name="data">The database of this project file.</param>
     /// <param name="settings">The settings of the project.</param>
-    private BackupProject(DbContextData data, Settings settings)
+    /// <param name="currentScan">The current scan for this project.</param>
+    private BackupProject(
+        DbContextData data,
+        Settings settings,
+        IScan? currentScan)
     {
         _data = data;
         _settings = settings;
+        _currentScan = currentScan;
+
         UpdateIsReady();
     }
 
     /// <inheritdoc />
     public event EventHandler<EventArgs>? IsReadyChanged;
+
+    /// <inheritdoc />
+    public event EventHandler<EventArgs>? CurrentScanChanged;
 
     /// <inheritdoc />
     public IDbContextData Data => _data;
@@ -54,6 +64,9 @@ public class BackupProject : IBackupProject
         }
     }
 
+    /// <inheritdoc />
+    public IScan? CurrentScan => _currentScan;
+
     /// <summary>
     /// Construction of a <see cref="BackupProject"/> instance needs async code to read the settings. Therefore
     /// you need to use this method to create an instance.
@@ -63,7 +76,15 @@ public class BackupProject : IBackupProject
     public static async Task<BackupProject> CreateBackupProjectAsync(DbContextData data)
     {
         var settings = await data.SettingsRepository.GetSettingsAsync(data.Connection, null);
-        return new BackupProject(data, settings);
+        var scanData = await data.ScanRepository.GetCurrentScan(data.Connection);
+        IScan? scan = null;
+        if (scanData != null)
+        {
+            var scanSettings = await data.SettingsRepository.GetSettingsAsync(data.Connection, scanData);
+            scan = new Scan(data.ScanRepository, scanData, scanSettings);
+        }
+
+        return new BackupProject(data, settings, scan);
     }
 
     /// <inheritdoc />
@@ -73,7 +94,30 @@ public class BackupProject : IBackupProject
         _settings = await _data.SettingsRepository.GetSettingsAsync(_data.Connection, null);
 
         UpdateIsReady();
+
         return _settings;
+    }
+
+    /// <inheritdoc />
+    public async Task<IScan> CreateScanAsync()
+    {
+        if (!IsReady)
+        {
+            throw new InvalidOperationException("Project is not opened or not ready.");
+        }
+
+        var connection = Data.Connection;
+        var scanRepository = Data.ScanRepository;
+        var settingsRepository = Data.SettingsRepository;
+
+        var scan = await scanRepository.CreateScanAsync(connection);
+        var settings = await settingsRepository.GetSettingsAsync(connection, scan);
+
+        _currentScan = new Scan(scanRepository, scan, settings);
+
+        CurrentScanChanged?.Invoke(this, EventArgs.Empty);
+
+        return _currentScan;
     }
 
     /// <inheritdoc />

@@ -12,7 +12,7 @@ using Prism.Mvvm;
 /// </summary>
 public class FileScanViewModel : BindableBase
 {
-    private readonly ILongRunningOperationManager _longRunningOperationManager;
+    private readonly IScanStatusManager _longRunningOperationManager;
     private readonly IErrorHandler _errorHandler;
     private readonly IFileEnumerator _fileEnumerator;
     private bool _isRunButtonEnabled;
@@ -27,7 +27,7 @@ public class FileScanViewModel : BindableBase
     /// <param name="errorHandler">The error handler.</param>
     /// <param name="fileEnumerator">The file enumerator.</param>
     public FileScanViewModel(
-        ILongRunningOperationManager longRunningOperationManager,
+        IScanStatusManager longRunningOperationManager,
         IErrorHandler errorHandler,
         IFileEnumerator fileEnumerator)
     {
@@ -39,7 +39,7 @@ public class FileScanViewModel : BindableBase
         _progressText = "Not yet started"; // TODO: Read this value from the database (current scan)
         _isProgressBarIndeterminate = false;
 
-        _longRunningOperationManager.OperationChanged += OnLongRunningOperationChanged;
+        _longRunningOperationManager.Changed += OnLongRunningOperationChanged;
 
         RunFileScanCommand = new DelegateCommand(OnRunFileScan);
         ContinueCancelledFileScanCommand = new DelegateCommand(OnContinueCancelledFileScan);
@@ -100,12 +100,10 @@ public class FileScanViewModel : BindableBase
     private void OnLongRunningOperationChanged(object? sender, EventArgs e)
     {
         IsRunButtonEnabled = !_longRunningOperationManager.IsRunning;
-        if (_longRunningOperationManager.ScanType == ScanType.FileScan)
-        {
-            ProgressText = _longRunningOperationManager.Text;
-            IsProgressBarIndeterminate = _longRunningOperationManager.Percentage == null && _longRunningOperationManager.IsRunning;
-            Progress = _longRunningOperationManager.Percentage.HasValue ? _longRunningOperationManager.Percentage.Value : 0.0;
-        }
+        var operationStatus = _longRunningOperationManager.FullScanStatus.FileScanStatus;
+        ProgressText = operationStatus.Text;
+        IsProgressBarIndeterminate = operationStatus.Progress == null && operationStatus.IsRunning;
+        Progress = operationStatus.Progress.HasValue ? operationStatus.Progress.Value : 0.0;
     }
 
     private async void OnRunFileScan()

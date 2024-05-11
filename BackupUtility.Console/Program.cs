@@ -77,15 +77,14 @@ app.AddCommand(
         var projectManager = new ProjectManager();
         var project = await projectManager.OpenProjectAsync(databasePath);
         var dispatcherService = new ConsoleDispatcherService();
-        var longRunningOperationManager = new LongRunningOperationManager(dispatcherService);
+        var scanStatusManager = new ScanStatusManager(dispatcherService);
         var errorHandler = new ErrorHandler(loggerFactory.CreateLogger<ErrorHandler>());
 
         logger.LogInformation("Enumerate Folders...");
         var enumerateFolders = new FolderEnumerator(
             loggerFactory.CreateLogger<FolderEnumerator>(),
             projectManager,
-            longRunningOperationManager,
-            errorHandler);
+            scanStatusManager);
 
         await enumerateFolders.EnumerateFoldersAsync();
     });
@@ -107,15 +106,14 @@ app.AddCommand(
         var projectManager = new ProjectManager();
         var project = await projectManager.OpenProjectAsync(databasePath);
         var dispatcherService = new ConsoleDispatcherService();
-        var longRunningOperationManager = new LongRunningOperationManager(dispatcherService);
+        var scanStatusManager = new ScanStatusManager(dispatcherService);
         var errorHandler = new ErrorHandler(loggerFactory.CreateLogger<ErrorHandler>());
 
         logger.LogInformation("Enumerate Folders...");
         var enumerateFiles = new FileEnumerator(
             loggerFactory.CreateLogger<FileEnumerator>(),
             projectManager,
-            longRunningOperationManager,
-            errorHandler);
+            scanStatusManager);
 
         await enumerateFiles.EnumerateFilesAsync(false);
     });
@@ -137,15 +135,14 @@ app.AddCommand(
         var projectManager = new ProjectManager();
         var project = await projectManager.OpenProjectAsync(databasePath);
         var dispatcherService = new ConsoleDispatcherService();
-        var longRunningOperationManager = new LongRunningOperationManager(dispatcherService);
+        var scanStatusManager = new ScanStatusManager(dispatcherService);
         var errorHandler = new ErrorHandler(loggerFactory.CreateLogger<ErrorHandler>());
 
         logger.LogInformation("Find duplicate files and folders...");
         var duplicateFileAnalysis = new DuplicateFileAnalysis(
             loggerFactory.CreateLogger<DuplicateFileAnalysis>(),
             projectManager,
-            longRunningOperationManager,
-            errorHandler);
+            scanStatusManager);
 
         await duplicateFileAnalysis.RunDuplicateFileAnalysis();
     });
@@ -167,15 +164,14 @@ app.AddCommand(
         var projectManager = new ProjectManager();
         var project = await projectManager.OpenProjectAsync(databasePath);
         var dispatcherService = new ConsoleDispatcherService();
-        var longRunningOperationManager = new LongRunningOperationManager(dispatcherService);
+        var scanStatusManager = new ScanStatusManager(dispatcherService);
         var errorHandler = new ErrorHandler(loggerFactory.CreateLogger<ErrorHandler>());
 
         logger.LogInformation("Find orphaned files...");
         var orphanedFileEnumerator = new OrphanedFileEnumerator(
             loggerFactory.CreateLogger<OrphanedFileEnumerator>(),
             projectManager,
-            longRunningOperationManager,
-            errorHandler);
+            scanStatusManager);
 
         await orphanedFileEnumerator.EnumerateOrphanedFilesAsync();
     });
@@ -203,8 +199,13 @@ app.AddCommand(
         var projectManager = new ProjectManager();
         var project = await projectManager.OpenProjectAsync(databasePath);
         var dispatcherService = new ConsoleDispatcherService();
-        var longRunningOperationManager = new LongRunningOperationManager(dispatcherService);
+        var scanStatusManager = new ScanStatusManager(dispatcherService);
         var errorHandler = new ErrorHandler(loggerFactory.CreateLogger<ErrorHandler>());
+        var folderEnumerator = new FolderEnumerator(loggerFactory.CreateLogger<FolderEnumerator>(), projectManager, scanStatusManager);
+        var fileEnumerator = new FileEnumerator(loggerFactory.CreateLogger<FileEnumerator>(), projectManager, scanStatusManager);
+        var duplicateFileAnalysis = new DuplicateFileAnalysis(loggerFactory.CreateLogger<DuplicateFileAnalysis>(), projectManager, scanStatusManager);
+        var orphanedFileEnumerator = new OrphanedFileEnumerator(loggerFactory.CreateLogger<OrphanedFileEnumerator>(), projectManager, scanStatusManager);
+        var completeScan = new CompleteScan(loggerFactory.CreateLogger<CompleteScan>(), projectManager, scanStatusManager, folderEnumerator, fileEnumerator, duplicateFileAnalysis, orphanedFileEnumerator);
         if (project == null)
         {
             throw new InvalidOperationException($"Unable to open project {databasePath}");
@@ -221,41 +222,8 @@ app.AddCommand(
         logger.LogInformation("Write settings...");
         await project.SaveSettingsAsync(project.Settings);
 
-        logger.LogInformation("Enumerate Folders...");
-        var enumerateFolders = new FolderEnumerator(
-            loggerFactory.CreateLogger<FolderEnumerator>(),
-            projectManager,
-            longRunningOperationManager,
-            errorHandler);
-
-        await enumerateFolders.EnumerateFoldersAsync();
-
-        logger.LogInformation("Enumerate Folders...");
-        var enumerateFiles = new FileEnumerator(
-            loggerFactory.CreateLogger<FileEnumerator>(),
-            projectManager,
-            longRunningOperationManager,
-            errorHandler);
-
-        await enumerateFiles.EnumerateFilesAsync(false);
-
-        logger.LogInformation("Find duplicate files and folders...");
-        var duplicateFileAnalysis = new DuplicateFileAnalysis(
-            loggerFactory.CreateLogger<DuplicateFileAnalysis>(),
-            projectManager,
-            longRunningOperationManager,
-            errorHandler);
-
-        await duplicateFileAnalysis.RunDuplicateFileAnalysis();
-
-        logger.LogInformation("Find orphaned files...");
-        var orphanedFileEnumerator = new OrphanedFileEnumerator(
-            loggerFactory.CreateLogger<OrphanedFileEnumerator>(),
-            projectManager,
-            longRunningOperationManager,
-            errorHandler);
-
-        await orphanedFileEnumerator.EnumerateOrphanedFilesAsync();
+        logger.LogInformation("Run full scan...");
+        await completeScan.RunAsync();
     });
 
 app.Run();

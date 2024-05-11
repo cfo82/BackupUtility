@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:prism="http://prismlibrary.com/"
              xmlns:local="clr-namespace:BackupUtilities.Wpf.Views.Scans"
              mc:Ignorable="d" 
              d:DesignHeight="800" d:DesignWidth="1200">
@@ -13,160 +14,28 @@
             <Setter Property="MaxHeight" Value="800"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
         </Style>
-        <Style x:Key="ActionButtonStyle" TargetType="Button">
-            <Setter Property="HorizontalAlignment" Value="Stretch"/>
-            <Setter Property="Margin" Value="18,4,4,4"/>
-            <Setter Property="VerticalAlignment" Value="Top"/>
-            <Setter Property="HorizontalContentAlignment" Value="Left"/>
-            <Setter Property="Padding" Value="4,2"/>
-        </Style>
     </UserControl.Resources>
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
-        <TextBlock Grid.Row="0" Text="Scan 07.05.2024" FontSize="24" Margin="12"/>
-        <ScrollViewer Grid.Row="1" HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Visible">
-            <Grid>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="0"/>
-                    <RowDefinition Height="0"/>
-                    <RowDefinition Height="0"/>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
 
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
+        <Button Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" Width="64" Height="64" Margin="12" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsEnabled="{Binding AreButtonsEnabled}" Command="{Binding RunCompleteScanCommand}">
+            <Image Source="/Images/9070794_play_two_icon.png"/>
+        </Button>
+        <TextBlock Grid.Row="0" Grid.Column="1" Text="Run All Steps with Settings" FontSize="18" Margin="12,12,12,4"/>
+        <TextBlock Grid.Row="1" Grid.Column="2" Margin="12,4" Style="{StaticResource DescriptionTextStyle}" Text="Run a complete scan for the working directory." />
 
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
+        <Separator Grid.Row="3" Grid.ColumnSpan="2"/>
 
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
-
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <Button Grid.Row="0" Grid.RowSpan="2" Grid.Column="0" Width="64" Height="64" Margin="12" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch">
-                    <Image Source="/Images/9070794_play_two_icon.png"/>
-                </Button>
-                <TextBlock Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Text="Run All Steps with Settings" FontSize="18" Margin="12,12,12,4"/>
-
-                <Grid Grid.Row="1" Grid.Column="1" Margin="24,4,12,4">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto"/>
-                        <RowDefinition Height="Auto"/>
-                    </Grid.RowDefinitions>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="Auto" />
-                        <ColumnDefinition Width="*" />
-                    </Grid.ColumnDefinitions>
-
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="Working Drive Root: "/>
-                    <TextBox Grid.Row="0" Grid.Column="1" IsReadOnly="True" MinWidth="150" Text="Blabla"/>
-
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="Mirror Drive Root: "/>
-                    <TextBox Grid.Row="1" Grid.Column="1" IsReadOnly="True" MinWidth="150" Text="Blabla"/>
-                </Grid>
-        
-                <Separator Grid.Row="2" Grid.ColumnSpan="3" />
-
-                <Image Grid.Row="6" Grid.RowSpan="5" Grid.Column="0" Source="/Images/9069097_folder_search_icon.png" Width="64" Height="64" Margin="12" VerticalAlignment="Top"/>
-                <TextBlock Grid.Row="6" Grid.Column="1" Grid.ColumnSpan="2" Text="Step 1: Folder Scan" FontSize="18" Margin="12"/>
-                <Button Grid.Row="7" Grid.Column="1" Style="{StaticResource ActionButtonStyle}" IsEnabled="{Binding FolderScanViewModel.IsRunButtonEnabled}" Command="{Binding FolderScanViewModel.RunFolderScanCommand}">
-                    <StackPanel Orientation="Horizontal">
-                        <Image Source="/Images/9070794_play_two_icon.png" Width="18" Height="18"/>
-                        <TextBlock Text="Run"/>
-                    </StackPanel>
-                </Button>
-                <TextBlock Grid.Row="7" Grid.Column="2" Margin="12,4" Style="{StaticResource DescriptionTextStyle}" Text="Search the entire working drive for all folders and store them inside the database." />
-                <ProgressBar Grid.Row="10" Grid.ColumnSpan="3" Minimum="0" Maximum="100" IsIndeterminate="{Binding FolderScanViewModel.IsProgressBarIndeterminate}" Margin="12,4" Value="{Binding FolderScanViewModel.Progress}" />
-                <TextBlock Grid.Row="10" Grid.ColumnSpan="3" Margin="24,8" Text="{Binding FolderScanViewModel.ProgressText}"/>
-                <Separator Grid.Row="11" Grid.ColumnSpan="3" />
-
-                <Image Grid.Row="12" Grid.RowSpan="5" Grid.Column="0" Source="/Images/9069051_doc_search_icon.png" Width="64" Height="64" Margin="12" VerticalAlignment="Top"/>
-                <TextBlock Grid.Row="12" Grid.Column="1" Grid.ColumnSpan="2" Text="Step 2: File Scan" FontSize="18" Margin="12"/>
-                <Button Grid.Row="13" Grid.Column="1" Style="{StaticResource ActionButtonStyle}" IsEnabled="{Binding FileScanViewModel.IsRunButtonEnabled}" Command="{Binding FileScanViewModel.RunFileScanCommand}">
-                    <StackPanel Orientation="Horizontal">
-                        <Image Source="/Images/9070794_play_two_icon.png" Width="18" Height="18"/>
-                        <TextBlock Text="Run" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <TextBlock Grid.Row="13" Grid.Column="2" Style="{StaticResource DescriptionTextStyle}" Text="Based on the folders listed from the Folder Scan search the entire working drive for files, compute hash values for each file discovered and check it for bitrot based on hash values and last-write timestamp known from previous runs."/>
-
-                <Button Grid.Row="14" Grid.Column="1" Style="{StaticResource ActionButtonStyle}" IsEnabled="{Binding FileScanViewModel.IsRunButtonEnabled}" Command="{Binding FileScanViewModel.ContinueCancelledFileScanCommand}">
-                    <StackPanel Orientation="Horizontal">
-                        <Image Source="/Images/9070794_play_two_icon.png" Width="18" Height="18"/>
-                        <TextBlock Text="Continue Cancelled Scan " Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <TextBlock Grid.Row="14" Grid.Column="2" Style="{StaticResource DescriptionTextStyle}" Text="Continue the last file scan from where it stopped."/>
-
-                <Button Grid.Row="15" Grid.Column="1" Style="{StaticResource ActionButtonStyle}" IsEnabled="{Binding FileScanViewModel.IsRunButtonEnabled}" Command="{Binding FileScanViewModel.RescanKnownFilesCommand}">
-                    <StackPanel Orientation="Horizontal">
-                        <Image Source="/Images/9070794_play_two_icon.png" Width="18" Height="18"/>
-                        <TextBlock Text="Rescan known files " Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <TextBlock Grid.Row="15" Grid.Column="2" Style="{StaticResource DescriptionTextStyle}" Text="For each file discovered from the previous in this scan check again if the file exists, re-compute the hash values and check the file again for bitrot based on the last known hash and timestamp."/>
-
-                <ProgressBar Grid.Row="16" Grid.ColumnSpan="3" Minimum="0" Maximum="100" IsIndeterminate="{Binding FileScanViewModel.IsProgressBarIndeterminate}" Margin="12,4" Value="{Binding FileScanViewModel.Progress}"/>
-                <TextBlock Grid.Row="16" Grid.ColumnSpan="3" Margin="24,8" Text="{Binding FileScanViewModel.ProgressText}"/>
-                
-                <Separator Grid.Row="17" Grid.ColumnSpan="3" />
-
-                <Image Grid.Row="18" Grid.RowSpan="5" Grid.Column="0" Source="/Images/9069548_copy_link_icon.png" Width="64" Height="64" Margin="12" VerticalAlignment="Top"/>
-                <TextBlock Grid.Row="18" Grid.Column="1" Grid.ColumnSpan="2" Text="Step 3: Duplicate File Analysis" FontSize="18" Margin="12"/>
-                <Button Grid.Row="19" Grid.Column="1" Style="{StaticResource ActionButtonStyle}" IsEnabled="{Binding DuplicateFileAnalysisViewModel.IsRunButtonEnabled}" Command="{Binding DuplicateFileAnalysisViewModel.RunDuplicateFileAnalysisCommand}">
-                    <StackPanel Orientation="Horizontal">
-                        <Image Source="/Images/9070794_play_two_icon.png" Width="18" Height="18"/>
-                        <TextBlock Text="Run" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <TextBlock Grid.Row="19" Grid.Column="2" Style="{StaticResource DescriptionTextStyle}" Text="Based on the previous two scans walk the entire folder tree, check each file for duplicates (based on its hash), compute a hash value for each folder and check if entire folder contents are available as duplicates." />
-                <ProgressBar Grid.Row="22" Grid.ColumnSpan="3" Minimum="0" Maximum="100" IsIndeterminate="{Binding DuplicateFileAnalysisViewModel.IsProgressBarIndeterminate}" Margin="12,4" Value="{Binding DuplicateFileAnalysisViewModel.Progress}" />
-                <TextBlock Grid.Row="22" Grid.ColumnSpan="3" Margin="24,8" Text="{Binding DuplicateFileAnalysisViewModel.ProgressText}"/>
-                <Separator Grid.Row="23" Grid.ColumnSpan="3" />
-
-                <Image Grid.Row="24" Grid.RowSpan="5" Grid.Column="0" Source="/Images/9069050_doc_fail_icon.png" Width="64" Height="64" Margin="12" VerticalAlignment="Top"/>
-                <TextBlock Grid.Row="24" Grid.Column="1" Grid.ColumnSpan="2" Text="Orphaned File Enumeration" FontSize="18" Margin="12"/>
-                <Button Grid.Row="25" Grid.Column="1" Style="{StaticResource ActionButtonStyle}" IsEnabled="{Binding OrphanedFileScanViewModel.IsRunButtonEnabled}" Command="{Binding OrphanedFileScanViewModel.RunOrphanedFileScanCommand}">
-                    <StackPanel Orientation="Horizontal">
-                        <Image Source="/Images/9070794_play_two_icon.png" Width="18" Height="18"/>
-                        <TextBlock Text="Run" Margin="4,0,0,0"/>
-                    </StackPanel>
-                </Button>
-                <TextBlock Grid.Row="25" Grid.Column="2" Style="{StaticResource DescriptionTextStyle}" Text="Scan the mirror drive for files that no longer exist on the working drive. For each of those files check if the file still exists on the working drive at a different location based on its hash." />
-                <ProgressBar Grid.Row="29" Grid.ColumnSpan="3" Minimum="0" Maximum="100" IsIndeterminate="{Binding OrphanedFileScanViewModel.IsProgressBarIndeterminate}" Margin="12,4" Value="{Binding OrphanedFileScanViewModel.Progress}" />
-                <TextBlock Grid.Row="29" Grid.ColumnSpan="3" Margin="24,8" Text="{Binding OrphanedFileScanViewModel.ProgressText}"/>
-            </Grid>
-        </ScrollViewer>
+        <ContentControl Grid.Row="4" Grid.ColumnSpan="2" prism:RegionManager.RegionName="Region_Scan_Details" />
     </Grid>
 </UserControl>

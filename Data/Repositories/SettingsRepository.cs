@@ -30,10 +30,8 @@ public class SettingsRepository : ISettingsRepository
                 await connection.ExecuteAsync(
                     @"CREATE TABLE Settings(
                         SettingsId INTEGER PRIMARY KEY AUTOINCREMENT,
-                        ScanId INTEGER DEFAULT NULL,
                         RootPath TEXT NOT NULL,
-                        MirrorPath TEXT NOT NULL,
-                        FOREIGN KEY(ScanId) REFERENCES Scans(Id) ON DELETE CASCADE ON UPDATE NO ACTION);");
+                        MirrorPath TEXT NOT NULL);");
 
                 await connection.ExecuteAsync(
                     @"CREATE TABLE IgnoredFolders(
@@ -43,7 +41,7 @@ public class SettingsRepository : ISettingsRepository
                         FOREIGN KEY(SettingsId) REFERENCES Settings(SettingsId) ON DELETE CASCADE ON UPDATE NO ACTION
                     );");
 
-                await connection.ExecuteAsync(@"CREATE INDEX Settings_ScanId ON Settings(ScanId);");
+                await connection.ExecuteAsync(@"INSERT INTO Settings(RootPath, MirrorPath) VALUES ('', '');");
                 break;
             }
         }
@@ -52,34 +50,25 @@ public class SettingsRepository : ISettingsRepository
     /// <inheritdoc />
     public async Task<Settings> GetSettingsAsync(IDbConnection connection, Scan? scan)
     {
-        var equalsTo = scan == null ? "IS NULL" : "= @ScanId";
-        var settings = await connection.QuerySingleOrDefaultAsync<Settings>(
+        var settings = await connection.QuerySingleAsync<Settings>(
             @$"SELECT
                 SettingsId,
-                ScanId,
                 RootPath,
                 MirrorPath
             FROM
                 Settings
             WHERE
-                ScanId {equalsTo};",
-            new { ScanId = scan?.Id });
+                SettingsId = @SettingsId;",
+            new { SettingsId = scan != null ? scan.SettingsId : 1 });
 
-        if (settings != null)
-        {
-            settings.IgnoredFolders = (await connection.QueryAsync<IgnoredFolder>(
-                @"SELECT
+        settings.IgnoredFolders = (await connection.QueryAsync<IgnoredFolder>(
+            @"SELECT
                 Path
             FROM
                 IgnoredFolders
             WHERE
                 SettingsId = @SettingsId;",
-                settings)).ToList();
-        }
-        else
-        {
-            settings = new();
-        }
+            settings)).ToList();
 
         return settings;
     }
@@ -89,41 +78,13 @@ public class SettingsRepository : ISettingsRepository
     {
         using var transaction = connection.BeginTransaction();
 
-        var exists = await connection.ExecuteScalarAsync<bool>(
-            @"SELECT 1 WHERE EXISTS(
-            SELECT 1 FROM
-                Settings
+        await connection.ExecuteAsync(
+            @"UPDATE Settings SET
+                RootPath = @RootPath,
+                MirrorPath = @MirrorPath
             WHERE
-                SettingsId = @SettingsId);",
+                SettingsId = @SettingsId",
             settings);
-        if (exists)
-        {
-            await connection.ExecuteAsync(
-                @"UPDATE Settings SET
-                    ScanId = @ScanId,
-                    RootPath = @RootPath,
-                    MirrorPath = @MirrorPath
-                WHERE
-                    SettingsId = @SettingsId",
-                settings);
-        }
-        else
-        {
-            int settingsId = await connection.QuerySingleAsync<int>(
-                @"INSERT INTO Settings(
-                    ScanId,
-                    RootPath,
-                    MirrorPath
-                )
-                VALUES (
-                    @ScanId,
-                    @RootPath,
-                    @MirrorPath
-                );
-                SELECT last_insert_rowid();",
-                settings);
-            settings.SettingsId = settingsId;
-        }
 
         await connection.ExecuteAsync("DELETE FROM IgnoredFolders WHERE SettingsId = @SettingsId;", settings);
 
@@ -142,5 +103,39 @@ public class SettingsRepository : ISettingsRepository
         }
 
         transaction.Commit();
+    }
+
+    /// <inheritdoc />
+    public async Task<Settings> CreateCopyForScan(IDbConnection connection)
+    {
+        var settings = await GetSettingsAsync(connection, null);
+
+        settings.SettingsId = await connection.QuerySingleAsync<int>(
+            @"INSERT INTO Settings(
+                RootPath,
+                MirrorPath
+            )
+            VALUES (
+                @RootPath,
+                @MirrorPath
+            );
+            SELECT last_insert_rowid();",
+            settings);
+
+        foreach (var ignoredDirectory in settings.IgnoredFolders)
+        {
+            await connection.ExecuteAsync(
+                @"INSERT INTO IgnoredFolders(
+                    SettingsId,
+                    Path
+                )
+                VALUES (
+                    @SettingsId,
+                    @Path
+                );",
+                new { SettingsId = settings.SettingsId, Path = ignoredDirectory.Path });
+        }
+
+        return settings;
     }
 }

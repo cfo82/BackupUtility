@@ -14,11 +14,6 @@ public class Settings
     public int SettingsId { get; set; }
 
     /// <summary>
-    /// Gets or sets the id of the scan for which the settings have been valid.
-    /// </summary>
-    public long? ScanId { get; set; }
-
-    /// <summary>
     /// Gets or sets the root path of the live working tree.
     /// </summary>
     public string RootPath { get; set; } = string.Empty;

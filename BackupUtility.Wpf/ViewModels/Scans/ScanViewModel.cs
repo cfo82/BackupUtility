@@ -12,66 +12,77 @@ using Prism.Mvvm;
 /// </summary>
 public class ScanViewModel : BindableBase
 {
-    private readonly ILongRunningOperationManager _longRunningOperationManager;
+    private readonly IScanStatusManager _longRunningOperationManager;
     private readonly IErrorHandler _errorHandler;
-    private readonly IFolderEnumerator _folderEnumerator;
-    private readonly IFileEnumerator _fileEnumerator;
-    private readonly IDuplicateFileAnalysis _duplicateFileAnalysis;
-    private readonly IOrphanedFileEnumerator _orphanedFileEnumerator;
+    private readonly IProjectManager _projectManager;
+    private readonly ICompleteScan _completeScan;
+    private bool _areButtonsEnabled;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ScanViewModel"/> class.
     /// </summary>
     /// <param name="longRunningOperationManager">The long running operation manager.</param>
     /// <param name="errorHandler">The error handler.</param>
-    /// <param name="folderEnumerator">The folder enumerator.</param>
-    /// <param name="fileEnumerator">The file enumerator.</param>
-    /// <param name="duplicateFileAnalysis">The duplicate file analysis.</param>
-    /// <param name="orphanedFileEnumerator">The enumerator to search for orphaned files.</param>
+    /// <param name="projectManager">The project manager.</param>
+    /// <param name="completeScan">The complete scan operation.</param>
     public ScanViewModel(
-        ILongRunningOperationManager longRunningOperationManager,
+        IScanStatusManager longRunningOperationManager,
         IErrorHandler errorHandler,
-        IFolderEnumerator folderEnumerator,
-        IFileEnumerator fileEnumerator,
-        IDuplicateFileAnalysis duplicateFileAnalysis,
-        IOrphanedFileEnumerator orphanedFileEnumerator)
+        IProjectManager projectManager,
+        ICompleteScan completeScan)
     {
         _longRunningOperationManager = longRunningOperationManager;
         _errorHandler = errorHandler;
-        _folderEnumerator = folderEnumerator;
-        _fileEnumerator = fileEnumerator;
-        _duplicateFileAnalysis = duplicateFileAnalysis;
-        _orphanedFileEnumerator = orphanedFileEnumerator;
+        _projectManager = projectManager;
+        _completeScan = completeScan;
 
-        _longRunningOperationManager.OperationChanged += OnLongRunningOperationChanged;
+        _areButtonsEnabled = true;
 
-        FolderScanViewModel = new FolderScanViewModel(_longRunningOperationManager, _errorHandler, _folderEnumerator);
-        FileScanViewModel = new FileScanViewModel(_longRunningOperationManager, _errorHandler, _fileEnumerator);
-        DuplicateFileAnalysisViewModel = new DuplicateFileAnalysisViewModel(_longRunningOperationManager, _errorHandler, _duplicateFileAnalysis);
-        OrphanedFileScanViewModel = new OrphanedFileScanViewModel(_longRunningOperationManager, _errorHandler, _orphanedFileEnumerator);
+        _longRunningOperationManager.Changed += OnLongRunningOperationChanged;
+
+        RunCompleteScanCommand = new DelegateCommand(OnRunCompleteScan);
     }
 
     /// <summary>
-    /// Gets the view model for the folder scan step.
+    /// Gets or sets a value indicating whether buttons should be enabled.
     /// </summary>
-    public FolderScanViewModel FolderScanViewModel { get; }
+    public bool AreButtonsEnabled
+    {
+        get { return _areButtonsEnabled; }
+        set { SetProperty(ref _areButtonsEnabled, value); }
+    }
 
     /// <summary>
-    /// Gets the view model for the file scan step.
+    /// Gets the command to run a new scan.
     /// </summary>
-    public FileScanViewModel FileScanViewModel { get; }
-
-    /// <summary>
-    /// Gets the view model for the duplicate file analysis step.
-    /// </summary>
-    public DuplicateFileAnalysisViewModel DuplicateFileAnalysisViewModel { get; }
-
-    /// <summary>
-    /// Gets the view model for the orphaned file scan step.
-    /// </summary>
-    public OrphanedFileScanViewModel OrphanedFileScanViewModel { get; }
+    public ICommand RunCompleteScanCommand { get; }
 
     private void OnLongRunningOperationChanged(object? sender, EventArgs e)
     {
+        AreButtonsEnabled = !_longRunningOperationManager.IsRunning;
+    }
+
+    private async void OnRunCompleteScan()
+    {
+        if (_longRunningOperationManager.IsRunning)
+        {
+            return;
+        }
+
+        if (_projectManager.CurrentProject == null || !_projectManager.CurrentProject.IsReady)
+        {
+            return;
+        }
+
+        try
+        {
+            await _projectManager.CurrentProject.CreateScanAsync();
+
+            await _completeScan.RunAsync();
+        }
+        catch (Exception ex)
+        {
+            _errorHandler.Error = ex;
+        }
     }
 }

@@ -23,4 +23,11 @@ public interface ISettingsRepository : IRepository
     /// <param name="settings">The settings to be saved.</param>
     /// <returns>A task representing the asynchronous operation.</returns>
     Task SaveSettingsAsync(IDbConnection connection, Settings settings);
+
+    /// <summary>
+    /// Create a copy of the current settings (where ScanId == NULL) and save them with the scan.
+    /// </summary>
+    /// <param name="connection">The database connection representing the database.</param>
+    /// <returns>The new copy of the settings.</returns>
+    Task<Settings> CreateCopyForScan(IDbConnection connection);
 }

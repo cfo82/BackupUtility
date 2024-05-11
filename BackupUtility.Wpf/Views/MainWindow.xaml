@@ -17,16 +17,15 @@
             <TabItem Header="Settings">
                 <ContentControl prism:RegionManager.RegionName="Region_MainWindow_Settings" />
             </TabItem>
-            <TabItem Header="Scans">
+            <TabItem Header="Scans" IsEnabled="{Binding IsReady}">
                 <ContentControl prism:RegionManager.RegionName="Region_MainWindow_Scans" />
             </TabItem>
-            <TabItem Header="Browse Files" IsEnabled="{Binding IsReady}">
+            <TabItem Header="Browse Files" IsEnabled="{Binding IsDuplicateFileAnalysisFinished}">
                 <ContentControl prism:RegionManager.RegionName="Region_MainWindow_Working" />
             </TabItem>
-            <TabItem Header="Mirror" IsEnabled="{Binding IsReady}">
+            <TabItem Header="Mirror" IsEnabled="{Binding IsOrphanedFileScanFinished}">
                 <ContentControl prism:RegionManager.RegionName="Region_MainWindow_Mirror" />
             </TabItem>
         </TabControl>
-        <ContentControl Grid.Row="0" Grid.RowSpan="2" prism:RegionManager.RegionName="Region_MainWindow_LongRunningOperation" Visibility="{Binding IsLongRunningOperationInProgress, Converter={converter:BoolToVisibilityConverter}}" />
     </Grid>
 </Window>

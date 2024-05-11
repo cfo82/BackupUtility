@@ -11,29 +11,25 @@ using Prism.Mvvm;
 public class MainWindowViewModel : BindableBase
 {
     private readonly IProjectManager _projectManager;
-    private readonly ILongRunningOperationManager _longRunningOperationManager;
     private IBackupProject? _currentProject;
+    private IScan? _currentScan;
     private bool _isReady = false;
+    private bool _isDuplicateFileAnalysisFinished = false;
+    private bool _isOrphanedFileScanFinished = false;
     private int _selectedTabIndex = 0;
-    private bool _isLongRunningOperationInProgress = false;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="MainWindowViewModel"/> class.
     /// </summary>
     /// <param name="projectManager">The project manager.</param>
-    /// <param name="longRunningOperationManager">The long running operation manager.</param>
     public MainWindowViewModel(
-        IProjectManager projectManager,
-        ILongRunningOperationManager longRunningOperationManager)
+        IProjectManager projectManager)
     {
         _projectManager = projectManager;
-        _longRunningOperationManager = longRunningOperationManager;
 
         _projectManager.CurrentProjectChanged += OnCurrentProjectChanged;
         OnCurrentProjectChanged(null, EventArgs.Empty);
-
-        _longRunningOperationManager.OperationChanged += OnLongRunningOperationChanged;
-        OnLongRunningOperationChanged(null, EventArgs.Empty);
+        OnCurrentScanChanged(null, EventArgs.Empty);
     }
 
     /// <summary>
@@ -46,6 +42,26 @@ public class MainWindowViewModel : BindableBase
     }
 
     /// <summary>
+    /// Gets or sets a value indicating whether the duplicate file analysis has finished. Meaning that the
+    /// working tree view can be enabled.
+    /// </summary>
+    public bool IsDuplicateFileAnalysisFinished
+    {
+        get { return _isDuplicateFileAnalysisFinished; }
+        set { SetProperty(ref _isDuplicateFileAnalysisFinished, value); }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the orphaned file scan has finished. Meaning that the
+    /// mirror tree view can be enabled.
+    /// </summary>
+    public bool IsOrphanedFileScanFinished
+    {
+        get { return _isOrphanedFileScanFinished; }
+        set { SetProperty(ref _isOrphanedFileScanFinished, value); }
+    }
+
+    /// <summary>
     /// Gets or sets a value defining which tab has been selected.
     /// </summary>
     public int SelectedTabIndex
@@ -54,20 +70,12 @@ public class MainWindowViewModel : BindableBase
         set { SetProperty(ref _selectedTabIndex, value); }
     }
 
-    /// <summary>
-    /// Gets or sets a value indicating whether a long running operation is in progress.
-    /// </summary>
-    public bool IsLongRunningOperationInProgress
-    {
-        get { return _isLongRunningOperationInProgress; }
-        set { SetProperty(ref _isLongRunningOperationInProgress, value); }
-    }
-
     private void OnCurrentProjectChanged(object? sender, EventArgs e)
     {
         if (_currentProject != null)
         {
             _currentProject.IsReadyChanged -= OnIsReadyChanged;
+            _currentProject.CurrentScanChanged -= OnCurrentScanChanged;
         }
 
         _currentProject = _projectManager.CurrentProject;
@@ -75,22 +83,58 @@ public class MainWindowViewModel : BindableBase
         if (_currentProject != null)
         {
             _currentProject.IsReadyChanged += OnIsReadyChanged;
+            _currentProject.CurrentScanChanged += OnCurrentScanChanged;
         }
 
         OnIsReadyChanged(null, EventArgs.Empty);
+        OnCurrentScanChanged(null, EventArgs.Empty);
     }
 
     private void OnIsReadyChanged(object? sender, EventArgs e)
+    {
+        UpdateState();
+    }
+
+    private void OnCurrentScanChanged(object? sender, EventArgs e)
+    {
+        if (_currentScan != null)
+        {
+            _currentScan.Changed -= OnCurrentScanDataChanged;
+        }
+
+        _currentScan = _currentProject?.CurrentScan;
+
+        if (_currentScan != null)
+        {
+            _currentScan.Changed += OnCurrentScanDataChanged;
+        }
+
+        OnCurrentScanDataChanged(null, EventArgs.Empty);
+    }
+
+    private void OnCurrentScanDataChanged(object? sender, EventArgs e)
+    {
+        UpdateState();
+    }
+
+    private void UpdateState()
     {
         IsReady = _currentProject != null && _currentProject.IsReady;
         if (!IsReady)
         {
             SelectedTabIndex = 0; // zero is defined to be the settings.
         }
-    }
 
-    private void OnLongRunningOperationChanged(object? sender, EventArgs e)
-    {
-        // IsLongRunningOperationInProgress = _longRunningOperationManager.IsRunning;
+        IsDuplicateFileAnalysisFinished = _currentScan?.Data.StageDuplicateFileAnalysisFinished ?? false;
+        if (!IsDuplicateFileAnalysisFinished && SelectedTabIndex == 2)
+        {
+            SelectedTabIndex = 0;
+        }
+
+        IsOrphanedFileScanFinished = _currentScan?.Data.StageOrphanedFileEnumerationFinished ?? false;
+        if (!IsOrphanedFileScanFinished && SelectedTabIndex == 3)
+        {
+            SelectedTabIndex = 0;
+        }
     }
 }

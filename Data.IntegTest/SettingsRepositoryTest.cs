@@ -50,7 +50,7 @@ public class SettingsRepositoryTest
         var settings = await sut.GetSettingsAsync(_dbContext.Connection, null);
 
         // Assert
-        Assert.AreEqual(settings.SettingsId, 0);
+        Assert.AreEqual(settings.SettingsId, 1);
         Assert.AreEqual(string.Empty, settings.RootPath);
         Assert.AreEqual(string.Empty, settings.MirrorPath);
         Assert.AreEqual(0, settings.IgnoredFolders.Count);
@@ -68,6 +68,7 @@ public class SettingsRepositoryTest
         var sut = new SettingsRepository(_dbContext);
         var settings = new Settings()
         {
+            SettingsId = 1,
             RootPath = "D:\\",
             MirrorPath = "E:\\",
             IgnoredFolders = new List<IgnoredFolder>()

@@ -16,8 +16,7 @@ public class FileEnumerator : IFileEnumerator
 {
     private readonly ILogger<FileEnumerator> _logger;
     private readonly IProjectManager _projectManager;
-    private readonly ILongRunningOperationManager _longRunningOperationManager;
-    private readonly IErrorHandler _errorHandler;
+    private readonly IScanStatus _scanStatus;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FileEnumerator"/> class.
@@ -25,17 +24,14 @@ public class FileEnumerator : IFileEnumerator
     /// <param name="logger">A new logger instance to be used.</param>
     /// <param name="projectManager">The project manager.</param>
     /// <param name="longRunningOperationManager">The long running operation manager.</param>
-    /// <param name="errorHandler">The error handler to use.</param>
     public FileEnumerator(
         ILogger<FileEnumerator> logger,
         IProjectManager projectManager,
-        ILongRunningOperationManager longRunningOperationManager,
-        IErrorHandler errorHandler)
+        IScanStatusManager longRunningOperationManager)
     {
         _logger = logger;
         _projectManager = projectManager;
-        _longRunningOperationManager = longRunningOperationManager;
-        _errorHandler = errorHandler;
+        _scanStatus = longRunningOperationManager.FullScanStatus.FileScanStatus;
     }
 
     /// <inheritdoc />
@@ -43,7 +39,7 @@ public class FileEnumerator : IFileEnumerator
     {
         try
         {
-            await _longRunningOperationManager.BeginOperationAsync("File Enumeration", ScanType.FileScan);
+            await _scanStatus.BeginAsync();
 
             var cs = new TaskCompletionSource();
 
@@ -52,34 +48,63 @@ public class FileEnumerator : IFileEnumerator
                 {
                     try
                     {
-                        if (_projectManager.CurrentProject == null || !_projectManager.CurrentProject.IsReady)
+                        var currentProject = _projectManager.CurrentProject;
+                        var currentScan = currentProject?.CurrentScan;
+
+                        if (currentProject == null || !currentProject.IsReady)
                         {
                             throw new InvalidOperationException("Project is not opened or not ready.");
                         }
 
-                        var connection = _projectManager.CurrentProject.Data.Connection;
-                        var settingsRepository = _projectManager.CurrentProject.Data.SettingsRepository;
-                        var folderRepository = _projectManager.CurrentProject.Data.FolderRepository;
-                        var fileRepository = _projectManager.CurrentProject.Data.FileRepository;
-                        var bitRotRepository = _projectManager.CurrentProject.Data.BitRotRepository;
+                        if (currentScan == null)
+                        {
+                            throw new InvalidOperationException("No current scan is available.");
+                        }
+
+                        var connection = currentProject.Data.Connection;
+                        var settingsRepository = currentProject.Data.SettingsRepository;
+                        var folderRepository = currentProject.Data.FolderRepository;
+                        var fileRepository = currentProject.Data.FileRepository;
+                        var bitRotRepository = currentProject.Data.BitRotRepository;
+
+                        await currentScan.UpdateFileScanDataAsync(
+                            connection,
+                            continueLastScan ? currentScan.Data.StageFileScanInitialized : false,
+                            false,
+                            DateTime.Now,
+                            null);
 
                         var settings = await settingsRepository.GetSettingsAsync(connection, null);
 
                         if (!continueLastScan)
                         {
-                            using (var transaction = connection.BeginTransaction())
-                            {
-                                await fileRepository.MarkAllFilesAsUntouchedAsync(connection);
-                                await bitRotRepository.ClearAsync(connection);
-                                transaction.Commit();
-                            }
+                            using var transaction = connection.BeginTransaction();
+
+                            await _scanStatus.UpdateAsync("Mark all files in DB as untouched...", 0.0);
+                            await fileRepository.MarkAllFilesAsUntouchedAsync(connection);
+
+                            await _scanStatus.UpdateAsync("Clear all existing bitrot from database...", 0.0);
+                            await bitRotRepository.DeleteAllAsync(currentScan.Data);
+
+                            transaction.Commit();
+
+                            await currentScan.UpdateFileScanDataAsync(connection, true, false, currentScan.Data.FileScanStartDate, null);
                         }
 
-                        await EnumerateFilesRecursiveAsync(connection, folderRepository, fileRepository, bitRotRepository, null, settings.RootPath, settings, continueLastScan);
+                        await ProcessTreeAsync(
+                            connection,
+                            folderRepository,
+                            fileRepository,
+                            bitRotRepository,
+                            settings,
+                            currentScan,
+                            continueLastScan);
+
+                        await currentScan.UpdateFileScanDataAsync(connection, true, true, currentScan.Data.FolderScanStartDate, DateTime.Now);
                     }
                     catch (Exception ex)
                     {
-                        _errorHandler.Error = ex;
+                        cs.SetException(ex);
                     }
 
                     cs.SetResult();
@@ -89,55 +114,74 @@ public class FileEnumerator : IFileEnumerator
         }
         finally
         {
-            await _longRunningOperationManager.EndOperationAsync();
+            await _scanStatus.EndAsync();
         }
     }
 
-    private static (string IntroHash, string FullHash) ComputeChecksum(string file)
-    {
-        using var stream = new BufferedStream(System.IO.File.OpenRead(file), 1200000);
-        byte[] introBuffer = new byte[100 * 1024];
-        int lengthRead = stream.Read(introBuffer, 0, introBuffer.Length);
-        string introHash = string.Empty;
-        if (lengthRead > 0)
-        {
-            using var introSha = SHA512.Create();
-            byte[] introChecksum = introSha.ComputeHash(introBuffer, 0, lengthRead);
-            introHash = BitConverter.ToString(introChecksum).Replace("-", string.Empty).ToLower();
-        }
-
-        stream.Seek(0, SeekOrigin.Begin);
-        using var sha = SHA512.Create();
-        byte[] checksum = sha.ComputeHash(stream);
-        var fullHash = BitConverter.ToString(checksum).Replace("-", string.Empty).ToLower();
-
-        return (introHash, fullHash);
-    }
-
-    private async Task EnumerateFilesRecursiveAsync(
+    private async Task ProcessTreeAsync(
         IDbConnection connection,
         IFolderRepository folderRepository,
         IFileRepository fileRepository,
         IBitRotRepository bitRotRepository,
-        Folder? parentFolder,
-        string path,
         Settings settings,
+        IScan scan,
         bool continueLastScan)
     {
-        if (settings.IgnoredFolders.Any(d => string.Equals(d.Path, path)))
+        var rootFolder = await folderRepository.GetFolderAsync(connection, settings.RootPath);
+        if (rootFolder == null)
         {
             return;
         }
 
-        var status = $"Enumerating Files For Directory '{path}'...";
+        var folderCount = await folderRepository.GetFolderCount(connection, DriveType.Working);
+        var fullPath = await folderRepository.GetFullPathForFolderAsync(connection, rootFolder);
+        var fullPathString = System.IO.Path.Combine(fullPath.Select(f => f.Name).ToArray());
+
+        await ProcessTreeRecursiveAsync(
+            connection,
+            folderRepository,
+            fileRepository,
+            bitRotRepository,
+            scan,
+            rootFolder,
+            fullPathString,
+            folderCount,
+            new FolderCounter { Index = fullPath.Count() - 1 },
+            continueLastScan);
+    }
+
+    private async Task ProcessTreeRecursiveAsync(
+        IDbConnection connection,
+        IFolderRepository folderRepository,
+        IFileRepository fileRepository,
+        IBitRotRepository bitRotRepository,
+        IScan scan,
+        Folder folder,
+        string path,
+        long folderCount,
+        FolderCounter folderCounter,
+        bool continueLastScan)
+    {
+        double percentage = folderCounter.Index / (double)(folderCount - 1);
+        ++folderCounter.Index;
+        var status = $"{folderCounter.Index} / {folderCount}: Enumerating Files For Directory '{path}'...";
+        await _scanStatus.UpdateAsync(status, percentage);
         _logger.LogInformation(status);
-        await _longRunningOperationManager.UpdateOperationAsync(status, null);
 
-        Folder currentFolder = await FindFolderAsync(connection, folderRepository, parentFolder, path);
-
-        foreach (var subDirectory in Directory.GetDirectories(path))
+        var subFolders = await folderRepository.GetSubFoldersAsync(connection, folder);
+        foreach (var subFolder in subFolders)
         {
-            await EnumerateFilesRecursiveAsync(connection, folderRepository, fileRepository, bitRotRepository, currentFolder, subDirectory, settings, continueLastScan);
+            await ProcessTreeRecursiveAsync(
+                connection,
+                folderRepository,
+                fileRepository,
+                bitRotRepository,
+                scan,
+                subFolder,
+                System.IO.Path.Join(path, subFolder.Name),
+                folderCount,
+                folderCounter,
+                continueLastScan);
         }
 
         var files = Directory.GetFiles(path);
@@ -148,44 +192,20 @@ public class FileEnumerator : IFileEnumerator
             foreach (var file in files)
             {
                 status = $"Working on file {file}...";
-                await _longRunningOperationManager.UpdateOperationAsync(status, null);
+                await _scanStatus.UpdateAsync(status, _scanStatus.Progress);
 
-                await CheckAndSaveFileAsync(connection, fileRepository, bitRotRepository, currentFolder, file, continueLastScan);
+                await CheckAndSaveFileAsync(connection, fileRepository, bitRotRepository, scan, folder, file, continueLastScan);
             }
 
             transaction.Commit();
         }
     }
 
-    private async Task<Folder> FindFolderAsync(
-        IDbConnection connection,
-        IFolderRepository folderRepository,
-        Folder? parentFolder,
-        string path)
-    {
-        Folder? folder;
-        if (parentFolder != null)
-        {
-            var folderName = Path.GetFileName(path);
-            folder = await folderRepository.GetFolderAsync(connection, parentFolder.Id, folderName);
-        }
-        else
-        {
-            folder = await folderRepository.GetFolderAsync(connection, path);
-        }
-
-        if (folder == null || folder.Touched == 0)
-        {
-            throw new InvalidOperationException($"The parent folder '{path}' can't be found or is not touched.");
-        }
-
-        return folder;
-    }
-
     private async Task CheckAndSaveFileAsync(
         IDbConnection connection,
         IFileRepository fileRepository,
         IBitRotRepository bitRotRepository,
+        IScan scan,
         Folder parentFolder,
         string path,
         bool continueLastScan)
@@ -236,7 +256,7 @@ public class FileEnumerator : IFileEnumerator
             else if (!string.Equals(file.Hash, checksum.FullHash))
             {
                 _logger.LogError($"*** Error: Bitrot detected on file '{path}'.");
-                await bitRotRepository.CreateBitRotAsync(connection, file);
+                await bitRotRepository.CreateBitRotAsync(scan.Data, file);
             }
 
             await fileRepository.TouchFileAsync(connection, file);
@@ -245,5 +265,31 @@ public class FileEnumerator : IFileEnumerator
         {
             _logger.LogError(e, "Error while checking file.");
         }
+    }
+
+    private (string IntroHash, string FullHash) ComputeChecksum(string file)
+    {
+        using var stream = new BufferedStream(System.IO.File.OpenRead(file), 1200000);
+        byte[] introBuffer = new byte[100 * 1024];
+        int lengthRead = stream.Read(introBuffer, 0, introBuffer.Length);
+        string introHash = string.Empty;
+        if (lengthRead > 0)
+        {
+            using var introSha = SHA512.Create();
+            byte[] introChecksum = introSha.ComputeHash(introBuffer, 0, lengthRead);
+            introHash = BitConverter.ToString(introChecksum).Replace("-", string.Empty).ToLower();
+        }
+
+        stream.Seek(0, SeekOrigin.Begin);
+        using var sha = SHA512.Create();
+        byte[] checksum = sha.ComputeHash(stream);
+        var fullHash = BitConverter.ToString(checksum).Replace("-", string.Empty).ToLower();
+
+        return (introHash, fullHash);
+    }
+
+    private class FolderCounter
+    {
+        public long Index { get; set; }
     }
 }

@@ -13,8 +13,7 @@ public class FolderEnumerator : IFolderEnumerator
 {
     private readonly ILogger<FolderEnumerator> _logger;
     private readonly IProjectManager _projectManager;
-    private readonly ILongRunningOperationManager _longRunningOperationManager;
-    private readonly IErrorHandler _errorHandler;
+    private readonly IScanStatus _scanStatus;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FolderEnumerator"/> class.
@@ -22,17 +21,14 @@ public class FolderEnumerator : IFolderEnumerator
     /// <param name="logger">A new logger instance to be used.</param>
     /// <param name="projectManager">The project manager.</param>
     /// <param name="longRunningOperationManager">The long running operation manager.</param>
-    /// <param name="errorHandler">The error handler to use.</param>
     public FolderEnumerator(
         ILogger<FolderEnumerator> logger,
         IProjectManager projectManager,
-        ILongRunningOperationManager longRunningOperationManager,
-        IErrorHandler errorHandler)
+        IScanStatusManager longRunningOperationManager)
     {
         _logger = logger;
         _projectManager = projectManager;
-        _longRunningOperationManager = longRunningOperationManager;
-        _errorHandler = errorHandler;
+        _scanStatus = longRunningOperationManager.FullScanStatus.FolderScanStatus;
     }
 
     /// <inheritdoc />
@@ -40,7 +36,7 @@ public class FolderEnumerator : IFolderEnumerator
     {
         try
         {
-            await _longRunningOperationManager.BeginOperationAsync("Folder Enumeration", ScanType.FolderScan);
+            await _scanStatus.BeginAsync();
 
             var cs = new TaskCompletionSource();
 
@@ -49,14 +45,24 @@ public class FolderEnumerator : IFolderEnumerator
                 {
                     try
                     {
-                        if (_projectManager.CurrentProject == null || !_projectManager.CurrentProject.IsReady)
+                        var currentProject = _projectManager.CurrentProject;
+                        var currentScan = currentProject?.CurrentScan;
+
+                        if (currentProject == null || !currentProject.IsReady)
                         {
                             throw new InvalidOperationException("Project is not opened or not ready.");
                         }
 
-                        var connection = _projectManager.CurrentProject.Data.Connection;
-                        var settingsRepository = _projectManager.CurrentProject.Data.SettingsRepository;
-                        var folderRepository = _projectManager.CurrentProject.Data.FolderRepository;
+                        if (currentScan == null)
+                        {
+                            throw new InvalidOperationException("No current scan is available.");
+                        }
+
+                        var connection = currentProject.Data.Connection;
+                        var settingsRepository = currentProject.Data.SettingsRepository;
+                        var folderRepository = currentProject.Data.FolderRepository;
+
+                        await currentScan.UpdateFolderScanDataAsync(connection, false, DateTime.Now, null);
 
                         var settings = await settingsRepository.GetSettingsAsync(connection, null);
 
@@ -70,7 +76,12 @@ public class FolderEnumerator : IFolderEnumerator
                         {
                             var rootPath = settings.RootPath;
                             var rootFolder = await folderRepository.SaveFullPathAsync(connection, rootPath, DriveType.Working);
-                            await folderRepository.TouchFolderAsync(connection, rootFolder);
+
+                            var fullPath = await folderRepository.GetFullPathForFolderAsync(connection, rootFolder);
+                            foreach (var folder in fullPath)
+                            {
+                                await folderRepository.TouchFolderAsync(connection, folder);
+                            }
 
                             foreach (var subDirectory in Directory.GetDirectories(rootPath))
                             {
@@ -79,10 +90,12 @@ public class FolderEnumerator : IFolderEnumerator
 
                             transaction.Commit();
                         }
+
+                        await currentScan.UpdateFolderScanDataAsync(connection, true, currentScan.Data.FolderScanStartDate, DateTime.Now);
                     }
                     catch (Exception ex)
                     {
-                        _errorHandler.Error = ex;
+                        cs.SetException(ex);
                     }
 
                     cs.SetResult();
@@ -93,7 +106,7 @@ public class FolderEnumerator : IFolderEnumerator
         }
         finally
         {
-            await _longRunningOperationManager.EndOperationAsync();
+            await _scanStatus.EndAsync();
         }
     }
 
@@ -111,7 +124,7 @@ public class FolderEnumerator : IFolderEnumerator
 
         var status = $"Enumerating Directory '{path}'.";
         _logger.LogInformation(status);
-        await _longRunningOperationManager.UpdateOperationAsync(status, null);
+        await _scanStatus.UpdateAsync(status, null);
 
         var folderName = Path.GetFileName(path);
         var currentFolder = await folderRepository.GetFolderAsync(connection, parentFolder.Id, folderName);

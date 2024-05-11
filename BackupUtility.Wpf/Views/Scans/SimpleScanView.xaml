@@ -1,0 +1,75 @@
+﻿<UserControl x:Class="BackupUtilities.Wpf.Views.Scans.SimpleScanView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:BackupUtilities.Wpf.Views.Scans"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding ScanTitle}" FontSize="18" Margin="12,12,12,4"/>
+
+        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="24,4,12,4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <TextBlock Grid.Row="0" Grid.Column="0" Text="Working Drive Root: "/>
+            <TextBlock Grid.Row="0" Grid.Column="1" MinWidth="150" Text="{Binding SettingsWorkingDrive}"/>
+
+            <TextBlock Grid.Row="1" Grid.Column="0" Text="Mirror Drive Root: "/>
+            <TextBlock Grid.Row="1" Grid.Column="1" MinWidth="150" Text="{Binding SettingsMirrorDrive}"/>
+        </Grid>
+
+        <Separator Grid.Row="2" Grid.ColumnSpan="3" Margin="0,12,0,0"/>
+
+        <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Text="Status" FontSize="18" Margin="12,12,12,4"/>
+        <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Margin="24,4,12,4">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+            </Grid.ColumnDefinitions>
+
+            <Image Grid.Row="0" Grid.Column="0" Source="/Images/9069097_folder_search_icon.png" Width="24" Height="24" Margin="0,4,0,4" VerticalAlignment="Top"/>
+            <ProgressBar Grid.Row="0" Grid.Column="1" Minimum="0" Maximum="1" IsIndeterminate="{Binding FolderScanViewModel.IsProgressBarIndeterminate}" Margin="4" Value="{Binding FolderScanViewModel.Progress}" />
+            <TextBlock Grid.Row="0" Grid.Column="1" Margin="24,8" Text="{Binding FolderScanViewModel.ProgressText}"/>
+
+            <Image Grid.Row="1" Grid.Column="0" Source="/Images/9069051_doc_search_icon.png" Width="24" Height="24" Margin="0,4,0,4" VerticalAlignment="Top"/>
+            <ProgressBar Grid.Row="1" Grid.Column="1" Minimum="0" Maximum="1" IsIndeterminate="{Binding FileScanViewModel.IsProgressBarIndeterminate}" Margin="4" Value="{Binding FileScanViewModel.Progress}" />
+            <TextBlock Grid.Row="1" Grid.Column="1" Margin="24,8" Text="{Binding FileScanViewModel.ProgressText}"/>
+
+            <Image Grid.Row="2" Grid.Column="0" Source="/Images/9069548_copy_link_icon.png" Width="24" Height="24" Margin="0,4,0,4" VerticalAlignment="Top"/>
+            <ProgressBar Grid.Row="2" Grid.Column="1" Minimum="0" Maximum="1" IsIndeterminate="{Binding DuplicateFileAnalysisViewModel.IsProgressBarIndeterminate}" Margin="4" Value="{Binding DuplicateFileAnalysisViewModel.Progress}" />
+            <TextBlock Grid.Row="2" Grid.Column="1" Margin="24,8" Text="{Binding DuplicateFileAnalysisViewModel.ProgressText}"/>
+
+            <Image Grid.Row="3" Grid.Column="0" Source="/Images/9069050_doc_fail_icon.png" Width="24" Height="24" Margin="0,4,0,4" VerticalAlignment="Top"/>
+            <ProgressBar Grid.Row="3" Grid.Column="1" Minimum="0" Maximum="1" IsIndeterminate="{Binding OrphanedFileScanViewModel.IsProgressBarIndeterminate}" Margin="4" Value="{Binding OrphanedFileScanViewModel.Progress}" />
+            <TextBlock Grid.Row="3" Grid.Column="1" Margin="24,8" Text="{Binding OrphanedFileScanViewModel.ProgressText}"/>
+        </Grid>
+    </Grid>
+</UserControl>

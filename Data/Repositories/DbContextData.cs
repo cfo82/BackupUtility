@@ -13,6 +13,12 @@ public class DbContextData : IDbContextData
     private SqliteConnection _connection;
     private bool _disposedValue;
 
+    static DbContextData()
+    {
+        SqlMapper.RemoveTypeMap(typeof(DateTime));
+        SqlMapper.AddTypeHandler(new SqliteDateTimeHandler());
+    }
+
     /// <summary>
     /// Initializes a new instance of the <see cref="DbContextData"/> class.
     /// </summary>
@@ -21,8 +27,8 @@ public class DbContextData : IDbContextData
     {
         _connection = new SqliteConnection($"Data Source={dbPath}");
 
-        ScanRepository = new ScanRepository(this);
         SettingsRepository = new SettingsRepository(this);
+        ScanRepository = new ScanRepository(this, SettingsRepository);
         FolderRepository = new FolderRepository(this);
         FileRepository = new FileRepository(this);
         BitRotRepository = new BitRotRepository(this);

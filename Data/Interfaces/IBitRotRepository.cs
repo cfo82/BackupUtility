@@ -8,24 +8,17 @@ using System.Data;
 public interface IBitRotRepository : IRepository
 {
     /// <summary>
-    /// Clear all bitrot entries.
-    /// </summary>
-    /// <param name="connection">The connection to the database.</param>
-    /// <returns>A task for async processing.</returns>
-    Task ClearAsync(IDbConnection connection);
-
-    /// <summary>
     /// Create a new bitrot entry.
     /// </summary>
-    /// <param name="connection">The connection to the database.</param>
+    /// <param name="scan">The scan during that the bitrot was detected.</param>
     /// <param name="file">The file for which bitrot has been detected.</param>
     /// <returns>The new bitrot instance.</returns>
-    Task<BitRot> CreateBitRotAsync(IDbConnection connection, File file);
+    Task<BitRot> CreateBitRotAsync(Scan scan, File file);
 
     /// <summary>
     /// Delete all bitrot elements from the repository.
     /// </summary>
-    /// <param name="connection">The connection to the database.</param>
+    /// <param name="scan">The scan for which all bitrot instances should be cleared.</param>
     /// <returns>A task for async processing.</returns>
-    Task DeleteAllAsync(IDbConnection connection);
+    Task DeleteAllAsync(Scan scan);
 }

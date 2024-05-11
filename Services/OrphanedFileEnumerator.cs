@@ -15,8 +15,7 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
 {
     private readonly ILogger<OrphanedFileEnumerator> _logger;
     private readonly IProjectManager _projectManager;
-    private readonly ILongRunningOperationManager _longRunningOperationManager;
-    private readonly IErrorHandler _errorHandler;
+    private readonly IScanStatus _scanStatus;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrphanedFileEnumerator"/> class.
@@ -24,17 +23,14 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
     /// <param name="logger">A new logger instance to be used.</param>
     /// <param name="projectManager">The project manager.</param>
     /// <param name="longRunningOperationManager">The long running operation manager.</param>
-    /// <param name="errorHandler">The error handler to use.</param>
     public OrphanedFileEnumerator(
         ILogger<OrphanedFileEnumerator> logger,
         IProjectManager projectManager,
-        ILongRunningOperationManager longRunningOperationManager,
-        IErrorHandler errorHandler)
+        IScanStatusManager longRunningOperationManager)
     {
         _logger = logger;
         _projectManager = projectManager;
-        _longRunningOperationManager = longRunningOperationManager;
-        _errorHandler = errorHandler;
+        _scanStatus = longRunningOperationManager.FullScanStatus.OrphanedFileScanStatus;
     }
 
     /// <inheritdoc />
@@ -42,7 +38,7 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
     {
         try
         {
-            await _longRunningOperationManager.BeginOperationAsync("Orphaned File Enumeration", ScanType.OrphanedFileScan);
+            await _scanStatus.BeginAsync();
 
             var cs = new TaskCompletionSource();
 
@@ -51,21 +47,31 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
                 {
                     try
                     {
-                        if (_projectManager.CurrentProject == null || !_projectManager.CurrentProject.IsReady)
+                        var currentProject = _projectManager.CurrentProject;
+                        var currentScan = currentProject?.CurrentScan;
+
+                        if (currentProject == null || !currentProject.IsReady)
                         {
                             throw new InvalidOperationException("Project is not opened or not ready.");
                         }
 
-                        var connection = _projectManager.CurrentProject.Data.Connection;
-                        var settingsRepository = _projectManager.CurrentProject.Data.SettingsRepository;
-                        var folderRepository = _projectManager.CurrentProject.Data.FolderRepository;
-                        var orphanedFilesRepository = _projectManager.CurrentProject.Data.OrphanedFileRepository;
+                        if (currentScan == null)
+                        {
+                            throw new InvalidOperationException("No current scan is available.");
+                        }
+
+                        var connection = currentProject.Data.Connection;
+                        var settingsRepository = currentProject.Data.SettingsRepository;
+                        var folderRepository = currentProject.Data.FolderRepository;
+                        var orphanedFilesRepository = currentProject.Data.OrphanedFileRepository;
+
+                        await currentScan.UpdateOrphanedFilesScanDataAsync(connection, false, DateTime.Now, null);
 
                         var settings = await settingsRepository.GetSettingsAsync(connection, null);
 
                         using (var transaction = connection.BeginTransaction())
                         {
-                            await _longRunningOperationManager.UpdateOperationAsync("Enumerate orphaned files...", null);
+                            await _scanStatus.UpdateAsync("Enumerate orphaned files...", null);
                             await orphanedFilesRepository.DeleteAllAsync(connection);
                             await EnumerateOrphanedFilesRecursiveAsync(connection, folderRepository, orphanedFilesRepository, settings.MirrorPath, settings.RootPath, settings);
                             transaction.Commit();
@@ -73,14 +79,14 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
 
                         using (var transaction = connection.BeginTransaction())
                         {
-                            await _longRunningOperationManager.UpdateOperationAsync("Remove duplication marks from folders...", null);
+                            await _scanStatus.UpdateAsync("Remove duplication marks from folders...", null);
                             await folderRepository.RemoveAllDuplicateMarks(connection, DriveType.Mirror);
                             transaction.Commit();
                         }
 
                         using (var transaction = connection.BeginTransaction())
                         {
-                            await _longRunningOperationManager.UpdateOperationAsync("Scan for entire folders still residing on working drive...", null);
+                            await _scanStatus.UpdateAsync("Scan for entire folders still residing on working drive...", null);
                             var folderCount = await folderRepository.GetFolderCount(connection, DriveType.Mirror);
                             var rootFolders = await folderRepository.GetRootFolders(connection, DriveType.Mirror);
                             foreach (var rootFolder in rootFolders)
@@ -90,10 +96,12 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
 
                             transaction.Commit();
                         }
+
+                        await currentScan.UpdateOrphanedFilesScanDataAsync(connection, true, currentScan.Data.FolderScanStartDate, DateTime.Now);
                     }
                     catch (Exception ex)
                     {
-                        _errorHandler.Error = ex;
+                        cs.SetException(ex);
                     }
 
                     cs.SetResult();
@@ -103,7 +111,7 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
         }
         finally
         {
-            await _longRunningOperationManager.EndOperationAsync();
+            await _scanStatus.EndAsync();
         }
     }
 
@@ -122,7 +130,7 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
 
         var status = $"Searching Orphaned Files in Directory '{mirrorPath}'...";
         _logger.LogInformation(status);
-        await _longRunningOperationManager.UpdateOperationAsync(status, null);
+        await _scanStatus.UpdateAsync(status, null);
 
         foreach (var subDirectory in Directory.GetDirectories(mirrorPath))
         {
@@ -209,9 +217,9 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
         long folderCount,
         FolderCounter folderCounter)
     {
-        double percentage = folderCounter.Index / (double)(folderCount - 1) * 100;
+        double percentage = folderCounter.Index / (double)(folderCount - 1);
         ++folderCounter.Index;
-        await _longRunningOperationManager.UpdateOperationAsync(percentage);
+        await _scanStatus.UpdateAsync(percentage);
 
         var subFolders = await folderRepository.GetSubFoldersAsync(connection, folder);
         foreach (var subFolder in subFolders)

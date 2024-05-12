@@ -1,6 +1,5 @@
 namespace BackupUtilities.Data.Interfaces;
 
-using System.Data;
 using System.Threading.Tasks;
 
 /// <summary>

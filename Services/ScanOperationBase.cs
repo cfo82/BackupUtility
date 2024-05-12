@@ -3,6 +3,7 @@ namespace BackupUtilities.Services;
 using System;
 using System.Threading.Tasks;
 using BackupUtilities.Services.Interfaces;
+using BackupUtilities.Services.Interfaces.Status;
 
 /// <summary>
 /// Base class for scan operations.

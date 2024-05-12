@@ -2,7 +2,6 @@ namespace BackupUtilities.Wpf.ViewModels.Mirror;
 
 using System;
 using System.Collections.ObjectModel;
-using System.Data;
 using System.Threading.Tasks;
 using BackupUtilities.Data.Interfaces;
 using BackupUtilities.Services.Interfaces;

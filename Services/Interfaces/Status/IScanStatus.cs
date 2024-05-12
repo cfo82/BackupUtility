@@ -1,4 +1,4 @@
-namespace BackupUtilities.Services.Interfaces;
+namespace BackupUtilities.Services.Interfaces.Status;
 
 /// <summary>
 /// Base interface for scan status objects.

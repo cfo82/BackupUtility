@@ -1,7 +1,5 @@
 namespace BackupUtilities.Data.Interfaces;
 
-using System.Data;
-
 /// <summary>
 /// Repository to manage bitrot.
 /// </summary>

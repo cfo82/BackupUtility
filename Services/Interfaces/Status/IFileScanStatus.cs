@@ -1,4 +1,4 @@
-namespace BackupUtilities.Services.Interfaces;
+namespace BackupUtilities.Services.Interfaces.Status;
 
 /// <summary>
 /// The file scan status is an extended scan status. It contains a second progress indicator which represents

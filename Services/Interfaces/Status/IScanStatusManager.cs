@@ -1,4 +1,4 @@
-namespace BackupUtilities.Services.Interfaces;
+namespace BackupUtilities.Services.Interfaces.Status;
 
 /// <summary>
 /// Represents the status of a long running operation.

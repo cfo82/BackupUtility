@@ -1,7 +1,8 @@
-namespace BackupUtilities.Services;
+namespace BackupUtilities.Services.Services.Status;
 
 using System;
 using BackupUtilities.Services.Interfaces;
+using BackupUtilities.Services.Interfaces.Status;
 
 /// <summary>
 /// Default implementation of <see cref="IScanStatusManager"/>.

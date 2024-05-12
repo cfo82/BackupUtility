@@ -3,6 +3,7 @@ namespace BackupUtilities.Services;
 using System.Threading.Tasks;
 using BackupUtilities.Data.Interfaces;
 using BackupUtilities.Services.Interfaces;
+using BackupUtilities.Services.Interfaces.Status;
 using Microsoft.Extensions.Logging;
 
 /// <summary>

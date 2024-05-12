@@ -1,6 +1,5 @@
 namespace BackupUtilities.Data.Repositories;
 
-using System.Data;
 using System.Threading.Tasks;
 using BackupUtilities.Data.Interfaces;
 using Dapper;

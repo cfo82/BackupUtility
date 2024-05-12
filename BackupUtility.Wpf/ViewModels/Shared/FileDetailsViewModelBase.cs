@@ -2,12 +2,10 @@ namespace BackupUtilities.Wpf.ViewModels.Shared;
 
 using System;
 using System.Collections.ObjectModel;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using BackupUtilities.Data.Interfaces;
 using BackupUtilities.Services.Interfaces;
-using BackupUtilities.Wpf.Contracts;
 using BackupUtilities.Wpf.Views.Shared;
 using Prism.Mvvm;
 

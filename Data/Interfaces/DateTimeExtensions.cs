@@ -26,7 +26,7 @@ public static class DateTimeExtensions
     /// <returns>The <see cref="DateTime"/> object.</returns>
     public static DateTime FromSqlite(this string value)
     {
-        var dateTime = DateTime.ParseExact((string)value, "dd/MM/yyyy HH:mm:ss:fffffff", CultureInfo.InvariantCulture);
+        var dateTime = DateTime.ParseExact(value, "dd/MM/yyyy HH:mm:ss:fffffff", CultureInfo.InvariantCulture);
         DateTime.SpecifyKind(dateTime, DateTimeKind.Utc);
         return dateTime;
     }

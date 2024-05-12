@@ -2,12 +2,12 @@ namespace BackupUtilities.Services;
 
 using System;
 using System.Data;
-using System.Diagnostics;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using BackupUtilities.Data.Interfaces;
 using BackupUtilities.Services.Interfaces;
+using BackupUtilities.Services.Interfaces.Status;
 using Microsoft.Extensions.Logging;
 
 /// <summary>

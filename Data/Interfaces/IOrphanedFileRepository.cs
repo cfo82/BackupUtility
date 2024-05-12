@@ -1,7 +1,5 @@
 namespace BackupUtilities.Data.Interfaces;
 
-using System.Data;
-
 /// <summary>
 /// A repository that stores orphaned files. Orphaned files are files that exist on the Mirror but
 /// not on the live drive. That means they will be deleted during the next robocopy /MIR.

@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using BackupUtilities.Data.Interfaces;
 using BackupUtilities.Services.Interfaces;
-using BackupUtilities.Wpf.Contracts;
 using BackupUtilities.Wpf.Views.Shared;
 using Prism.Commands;
 using Prism.Mvvm;

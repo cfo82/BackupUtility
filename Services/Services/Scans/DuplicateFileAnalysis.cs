@@ -1,4 +1,4 @@
-namespace BackupUtilities.Services;
+namespace BackupUtilities.Services.Services.Scans;
 
 using System;
 using System.Collections.Generic;
@@ -7,7 +7,9 @@ using System.Data;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using BackupUtilities.Data.Interfaces;
+using BackupUtilities.Services;
 using BackupUtilities.Services.Interfaces;
+using BackupUtilities.Services.Interfaces.Scans;
 using BackupUtilities.Services.Interfaces.Status;
 using Microsoft.Extensions.Logging;
 

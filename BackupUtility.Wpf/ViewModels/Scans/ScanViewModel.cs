@@ -3,6 +3,7 @@ namespace BackupUtilities.Wpf.ViewModels.Scans;
 using System;
 using System.Windows.Input;
 using BackupUtilities.Services.Interfaces;
+using BackupUtilities.Services.Interfaces.Scans;
 using BackupUtilities.Services.Interfaces.Status;
 using BackupUtilities.Wpf.Views.Scans;
 using Prism.Commands;

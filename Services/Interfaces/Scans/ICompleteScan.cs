@@ -1,4 +1,4 @@
-namespace BackupUtilities.Services.Interfaces;
+namespace BackupUtilities.Services.Interfaces.Scans;
 
 using System.Threading.Tasks;
 

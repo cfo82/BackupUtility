@@ -1,4 +1,4 @@
-namespace BackupUtilities.Services;
+namespace BackupUtilities.Services.Services.Scans;
 
 using System;
 using System.Data;
@@ -6,7 +6,9 @@ using System.Globalization;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using BackupUtilities.Data.Interfaces;
+using BackupUtilities.Services;
 using BackupUtilities.Services.Interfaces;
+using BackupUtilities.Services.Interfaces.Scans;
 using BackupUtilities.Services.Interfaces.Status;
 using Microsoft.Extensions.Logging;
 
@@ -99,7 +101,7 @@ public class FileEnumerator : ScanOperationBase, IFileEnumerator
 
         var folderCount = await folderRepository.GetFolderCount(DriveType.Working);
         var fullPath = await folderRepository.GetFullPathForFolderAsync(rootFolder);
-        var fullPathString = System.IO.Path.Combine(fullPath.Select(f => f.Name).ToArray());
+        var fullPathString = Path.Combine(fullPath.Select(f => f.Name).ToArray());
 
         await ProcessTreeRecursiveAsync(
             connection,
@@ -142,7 +144,7 @@ public class FileEnumerator : ScanOperationBase, IFileEnumerator
                 bitRotRepository,
                 scan,
                 subFolder,
-                System.IO.Path.Join(path, subFolder.Name),
+                Path.Join(path, subFolder.Name),
                 folderCount,
                 folderCounter,
                 continueLastScan);
@@ -156,7 +158,7 @@ public class FileEnumerator : ScanOperationBase, IFileEnumerator
             for (int i = 0; i < files.Length; ++i)
             {
                 double progress = (double)i / (files.Length - 1);
-                await _scanStatus.UpdateFolderEnumerationStatusAsync(System.IO.Path.GetFileName(files[i]), progress);
+                await _scanStatus.UpdateFolderEnumerationStatusAsync(Path.GetFileName(files[i]), progress);
 
                 await CheckAndSaveFileAsync(fileRepository, bitRotRepository, scan, folder, files[i], continueLastScan);
             }
@@ -177,7 +179,7 @@ public class FileEnumerator : ScanOperationBase, IFileEnumerator
     {
         try
         {
-            FileInfo fileInfo = new FileInfo(path);
+            var fileInfo = new FileInfo(path);
             var lastWriteTime = fileInfo.LastWriteTimeUtc;
 
             string name = Path.GetFileName(path);

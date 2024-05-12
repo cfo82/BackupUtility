@@ -1,11 +1,13 @@
-namespace BackupUtilities.Services;
+namespace BackupUtilities.Services.Services.Scans;
 
 using System;
 using System.Data;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 using BackupUtilities.Data.Interfaces;
+using BackupUtilities.Services;
 using BackupUtilities.Services.Interfaces;
+using BackupUtilities.Services.Interfaces.Scans;
 using BackupUtilities.Services.Interfaces.Status;
 using Microsoft.Extensions.Logging;
 
@@ -133,13 +135,13 @@ public class OrphanedFileEnumerator : ScanOperationBase, IOrphanedFileEnumerator
 
             var hash = ComputeChecksum(mirrorFilePath);
 
-            var directoryName = System.IO.Path.GetDirectoryName(mirrorFilePath);
+            var directoryName = Path.GetDirectoryName(mirrorFilePath);
             if (directoryName == null)
             {
                 throw new InvalidOperationException("Unexpected null for directoryName.");
             }
 
-            var fileName = System.IO.Path.GetFileName(mirrorFilePath);
+            var fileName = Path.GetFileName(mirrorFilePath);
             if (fileName == null)
             {
                 throw new InvalidOperationException("Unexpected null for fileName.");
@@ -147,7 +149,7 @@ public class OrphanedFileEnumerator : ScanOperationBase, IOrphanedFileEnumerator
 
             var folder = await folderRepository.SaveFullPathAsync(
                 directoryName,
-                Data.Interfaces.DriveType.Mirror);
+                DriveType.Mirror);
 
             await orphanedFilesRepository.SaveOrphanedFileAsync(
                 new OrphanedFile()

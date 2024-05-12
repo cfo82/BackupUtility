@@ -4,7 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
              xmlns:prism="http://prismlibrary.com/"
-             xmlns:local="clr-namespace:BackupUtilities.Wpf.Views.Scans"
+             xmlns:converter="clr-namespace:BackupUtilities.Wpf.Converter"
              mc:Ignorable="d" 
              d:DesignHeight="800" d:DesignWidth="1200">
     <UserControl.Resources>
@@ -22,7 +22,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
@@ -33,12 +33,14 @@
             <Image Source="/Images/9070794_play_two_icon.png"/>
         </Button>
         <TextBlock Grid.Row="0" Grid.Column="1" Text="Run All Steps with Settings" FontSize="18" Margin="12,12,12,4"/>
-        <TextBlock Grid.Row="1" Grid.Column="2" Margin="12,4" Style="{StaticResource DescriptionTextStyle}" Text="Run a complete scan for the working directory." />
+        <TextBlock Grid.Row="1" Grid.Column="1" Margin="12,4" Style="{StaticResource DescriptionTextStyle}" Text="Run a complete scan for the working directory." />
+        <CheckBox Grid.Row="2" Grid.Column="1" Content="Toggle Advanced Status Controls" Margin="12,4" ToolTip="Show advanced options for the scan status." IsChecked="{Binding ShowAdvancedStatusControls}"/>
 
         <Separator Grid.Row="3" Grid.ColumnSpan="2"/>
 
         <ContentControl Grid.Row="4" Grid.ColumnSpan="2" prism:RegionManager.RegionName="Region_Scan_Settings" />
 
-        <ContentControl Grid.Row="5" Grid.ColumnSpan="2" prism:RegionManager.RegionName="Region_Scan_Status" />
+        <ContentControl Grid.Row="5" Grid.ColumnSpan="2" prism:RegionManager.RegionName="Region_Scan_Simple_Status" Visibility="{Binding ShowAdvancedStatusControls, Converter={converter:BoolToVisibilityConverter}, ConverterParameter=true}"/>
+        <ContentControl Grid.Row="5" Grid.ColumnSpan="2" prism:RegionManager.RegionName="Region_Scan_Advanced_Status" Visibility="{Binding ShowAdvancedStatusControls, Converter={converter:BoolToVisibilityConverter}, ConverterParameter=false}"/>
     </Grid>
 </UserControl>

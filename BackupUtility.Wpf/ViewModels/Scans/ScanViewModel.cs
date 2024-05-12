@@ -17,6 +17,7 @@ public class ScanViewModel : BindableBase
     private readonly IProjectManager _projectManager;
     private readonly ICompleteScan _completeScan;
     private bool _areButtonsEnabled;
+    private bool _showAdvancedStatusControls;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ScanViewModel"/> class.
@@ -37,6 +38,7 @@ public class ScanViewModel : BindableBase
         _completeScan = completeScan;
 
         _areButtonsEnabled = true;
+        _showAdvancedStatusControls = false;
 
         _longRunningOperationManager.Changed += OnLongRunningOperationChanged;
 
@@ -50,6 +52,15 @@ public class ScanViewModel : BindableBase
     {
         get { return _areButtonsEnabled; }
         set { SetProperty(ref _areButtonsEnabled, value); }
+    }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether advanced status controls should be shown.
+    /// </summary>
+    public bool ShowAdvancedStatusControls
+    {
+        get { return _showAdvancedStatusControls; }
+        set { SetProperty(ref _showAdvancedStatusControls, value); }
     }
 
     /// <summary>

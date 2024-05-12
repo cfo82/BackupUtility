@@ -49,7 +49,7 @@ public class ScanStatus : IScanStatus
     public double? Progress => _progress;
 
     /// <inheritdoc />
-    public async Task ResetAsync()
+    public virtual async Task ResetAsync()
     {
         await RunSynchronizedAsync(() =>
         {

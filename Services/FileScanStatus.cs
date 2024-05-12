@@ -32,6 +32,18 @@ public class FileScanStatus : ScanStatus, IFileScanStatus
     public double FolderEnumerationProgress => _folderEnumerationProgress;
 
     /// <inheritdoc />
+    public override async Task ResetAsync()
+    {
+        await RunSynchronizedAsync(() =>
+        {
+            _folderEnumerationText = string.Empty;
+            _folderEnumerationProgress = 0;
+        });
+
+        await base.ResetAsync();
+    }
+
+    /// <inheritdoc />
     public async Task UpdateFolderEnumerationStatusAsync(string text, double percentage)
     {
         await RunSynchronizedAsync(() =>

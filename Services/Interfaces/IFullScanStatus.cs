@@ -13,7 +13,7 @@ public interface IFullScanStatus : IScanStatus
     /// <summary>
     /// Gets the status of the file scan.
     /// </summary>
-    public IScanStatus FileScanStatus { get; }
+    public IFileScanStatus FileScanStatus { get; }
 
     /// <summary>
     /// Gets the status of the duplicate file analysis.

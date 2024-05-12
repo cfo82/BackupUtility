@@ -16,7 +16,7 @@ public class FullScanStatus : ScanStatus, IFullScanStatus
         : base(uiDispatcherService, title)
     {
         FolderScanStatus = new ScanStatus(uiDispatcherService, "Folder Scan");
-        FileScanStatus = new ScanStatus(uiDispatcherService, "File Scan");
+        FileScanStatus = new FileScanStatus(uiDispatcherService, "File Scan");
         DuplicateFileAnalysisStatus = new ScanStatus(uiDispatcherService, "Duplicate File Analysis");
         OrphanedFileScanStatus = new ScanStatus(uiDispatcherService, "Orphaned File Scan");
     }
@@ -25,7 +25,7 @@ public class FullScanStatus : ScanStatus, IFullScanStatus
     public IScanStatus FolderScanStatus { get; }
 
     /// <inheritdoc />
-    public IScanStatus FileScanStatus { get; }
+    public IFileScanStatus FileScanStatus { get; }
 
     /// <inheritdoc />
     public IScanStatus DuplicateFileAnalysisStatus { get; }

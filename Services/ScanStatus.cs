@@ -103,7 +103,12 @@ public class ScanStatus : IScanStatus
         await RaiseChangedEventAsync();
     }
 
-    private async Task RunSynchronizedAsync(Action a)
+    /// <summary>
+    /// Run the given action guarded by the sempahore.
+    /// </summary>
+    /// <param name="a">The action to run as synchronized code.</param>
+    /// <returns>A task for async programming.</returns>
+    protected async Task RunSynchronizedAsync(Action a)
     {
         try
         {
@@ -117,7 +122,11 @@ public class ScanStatus : IScanStatus
         }
     }
 
-    private async Task RaiseChangedEventAsync()
+    /// <summary>
+    /// Raise the changed event.
+    /// </summary>
+    /// <returns>A task for async programming.</returns>
+    protected async Task RaiseChangedEventAsync()
     {
         if (_uiDispatcherService.CheckAccess())
         {

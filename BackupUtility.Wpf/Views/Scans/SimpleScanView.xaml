@@ -60,8 +60,18 @@
             <TextBlock Grid.Row="0" Grid.Column="1" Margin="24,8" Text="{Binding FolderScanViewModel.ProgressText}"/>
 
             <Image Grid.Row="1" Grid.Column="0" Source="/Images/9069051_doc_search_icon.png" Width="24" Height="24" Margin="0,4,0,4" VerticalAlignment="Top"/>
-            <ProgressBar Grid.Row="1" Grid.Column="1" Minimum="0" Maximum="1" IsIndeterminate="{Binding FileScanViewModel.IsProgressBarIndeterminate}" Margin="4" Value="{Binding FileScanViewModel.Progress}" />
-            <TextBlock Grid.Row="1" Grid.Column="1" Margin="24,8" Text="{Binding FileScanViewModel.ProgressText}"/>
+            <Grid Grid.Row="1" Grid.Column="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <ProgressBar Grid.Column="0" Grid.ColumnSpan="2" Minimum="0" Maximum="1" IsIndeterminate="{Binding FileScanViewModel.IsProgressBarIndeterminate}" Margin="4" Value="{Binding FileScanViewModel.Progress}" />
+                <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Margin="24,8" Text="{Binding FileScanViewModel.ProgressText}"/>
+
+                <ProgressBar Grid.Column="2" Minimum="0" Maximum="1" Margin="4" Value="{Binding FileScanViewModel.FolderProgress}" />
+                <TextBlock Grid.Column="2" Margin="24,8" Text="{Binding FileScanViewModel.FolderProgressText}"/>
+            </Grid>
 
             <Image Grid.Row="2" Grid.Column="0" Source="/Images/9069548_copy_link_icon.png" Width="24" Height="24" Margin="0,4,0,4" VerticalAlignment="Top"/>
             <ProgressBar Grid.Row="2" Grid.Column="1" Minimum="0" Maximum="1" IsIndeterminate="{Binding DuplicateFileAnalysisViewModel.IsProgressBarIndeterminate}" Margin="4" Value="{Binding DuplicateFileAnalysisViewModel.Progress}" />

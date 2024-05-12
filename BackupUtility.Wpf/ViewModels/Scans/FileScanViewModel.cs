@@ -19,6 +19,8 @@ public class FileScanViewModel : BindableBase
     private string _progressText;
     private bool _isProgressBarIndeterminate;
     private double _progress;
+    private string _folderProgressText;
+    private double _folderProgress;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FileScanViewModel"/> class.
@@ -38,6 +40,8 @@ public class FileScanViewModel : BindableBase
         _isRunButtonEnabled = true;
         _progressText = "Not yet started"; // TODO: Read this value from the database (current scan)
         _isProgressBarIndeterminate = false;
+        _folderProgressText = string.Empty;
+        _folderProgress = 0;
 
         _longRunningOperationManager.Changed += OnLongRunningOperationChanged;
 
@@ -97,6 +101,24 @@ public class FileScanViewModel : BindableBase
         set { SetProperty(ref _progress, value); }
     }
 
+    /// <summary>
+    /// Gets or sets a text indicating the progress of enumerating the current folder.
+    /// </summary>
+    public string FolderProgressText
+    {
+        get { return _folderProgressText; }
+        set { SetProperty(ref _folderProgressText, value); }
+    }
+
+    /// <summary>
+    /// Gets or sets the progress of enumerating the current folder.
+    /// </summary>
+    public double FolderProgress
+    {
+        get { return _folderProgress; }
+        set { SetProperty(ref _folderProgress, value); }
+    }
+
     private void OnLongRunningOperationChanged(object? sender, EventArgs e)
     {
         IsRunButtonEnabled = !_longRunningOperationManager.IsRunning;
@@ -104,6 +126,8 @@ public class FileScanViewModel : BindableBase
         ProgressText = operationStatus.Text;
         IsProgressBarIndeterminate = operationStatus.Progress == null && operationStatus.IsRunning;
         Progress = operationStatus.Progress.HasValue ? operationStatus.Progress.Value : 0.0;
+        FolderProgressText = operationStatus.FolderEnumerationText;
+        FolderProgress = operationStatus.FolderEnumerationProgress;
     }
 
     private async void OnRunFileScan()

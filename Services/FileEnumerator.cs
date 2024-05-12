@@ -2,6 +2,7 @@ namespace BackupUtilities.Services;
 
 using System;
 using System.Data;
+using System.Diagnostics;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ using Microsoft.Extensions.Logging;
 public class FileEnumerator : ScanOperationBase, IFileEnumerator
 {
     private readonly ILogger<FileEnumerator> _logger;
-    private readonly IScanStatus _scanStatus;
+    private readonly IFileScanStatus _scanStatus;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FileEnumerator"/> class.
@@ -152,20 +153,21 @@ public class FileEnumerator : ScanOperationBase, IFileEnumerator
         {
             using var transaction = connection.BeginTransaction();
 
-            foreach (var file in files)
+            for (int i = 0; i < files.Length; ++i)
             {
-                status = $"Working on file {file}...";
-                await _scanStatus.UpdateAsync(status, _scanStatus.Progress);
+                double progress = (double)i / (files.Length - 1);
+                await _scanStatus.UpdateFolderEnumerationStatusAsync(System.IO.Path.GetFileName(files[i]), progress);
 
-                await CheckAndSaveFileAsync(connection, fileRepository, bitRotRepository, scan, folder, file, continueLastScan);
+                await CheckAndSaveFileAsync(fileRepository, bitRotRepository, scan, folder, files[i], continueLastScan);
             }
+
+            await _scanStatus.UpdateFolderEnumerationStatusAsync(string.Empty, 1.0);
 
             transaction.Commit();
         }
     }
 
     private async Task CheckAndSaveFileAsync(
-        IDbConnection connection,
         IFileRepository fileRepository,
         IBitRotRepository bitRotRepository,
         IScan scan,

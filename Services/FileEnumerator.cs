@@ -12,10 +12,9 @@ using Microsoft.Extensions.Logging;
 /// <summary>
 /// Default-Implementation of <see cref="IFileEnumerator"/>.
 /// </summary>
-public class FileEnumerator : IFileEnumerator
+public class FileEnumerator : ScanOperationBase, IFileEnumerator
 {
     private readonly ILogger<FileEnumerator> _logger;
-    private readonly IProjectManager _projectManager;
     private readonly IScanStatus _scanStatus;
 
     /// <summary>
@@ -28,94 +27,58 @@ public class FileEnumerator : IFileEnumerator
         ILogger<FileEnumerator> logger,
         IProjectManager projectManager,
         IScanStatusManager longRunningOperationManager)
+        : base(projectManager)
     {
         _logger = logger;
-        _projectManager = projectManager;
         _scanStatus = longRunningOperationManager.FullScanStatus.FileScanStatus;
     }
 
     /// <inheritdoc />
     public async Task EnumerateFilesAsync(bool continueLastScan)
     {
-        try
+        await SpawnAndFinishLongRunningTaskAsync(_scanStatus, async (currentProject, currentScan) =>
         {
-            await _scanStatus.BeginAsync();
+            var connection = currentProject.Data.Connection;
+            var settingsRepository = currentProject.Data.SettingsRepository;
+            var folderRepository = currentProject.Data.FolderRepository;
+            var fileRepository = currentProject.Data.FileRepository;
+            var bitRotRepository = currentProject.Data.BitRotRepository;
 
-            var cs = new TaskCompletionSource();
+            await currentScan.UpdateFileScanDataAsync(
+                connection,
+                continueLastScan ? currentScan.Data.StageFileScanInitialized : false,
+                false,
+                DateTime.Now,
+                null);
 
-            await Task.Factory.StartNew(
-                async () =>
-                {
-                    try
-                    {
-                        var currentProject = _projectManager.CurrentProject;
-                        var currentScan = currentProject?.CurrentScan;
+            var settings = await settingsRepository.GetSettingsAsync(null);
 
-                        if (currentProject == null || !currentProject.IsReady)
-                        {
-                            throw new InvalidOperationException("Project is not opened or not ready.");
-                        }
+            if (!continueLastScan)
+            {
+                using var transaction = connection.BeginTransaction();
 
-                        if (currentScan == null)
-                        {
-                            throw new InvalidOperationException("No current scan is available.");
-                        }
+                await _scanStatus.UpdateAsync("Mark all files in DB as untouched...", 0.0);
+                await fileRepository.MarkAllFilesAsUntouchedAsync();
 
-                        var connection = currentProject.Data.Connection;
-                        var settingsRepository = currentProject.Data.SettingsRepository;
-                        var folderRepository = currentProject.Data.FolderRepository;
-                        var fileRepository = currentProject.Data.FileRepository;
-                        var bitRotRepository = currentProject.Data.BitRotRepository;
+                await _scanStatus.UpdateAsync("Clear all existing bitrot from database...", 0.0);
+                await bitRotRepository.DeleteAllAsync(currentScan.Data);
 
-                        await currentScan.UpdateFileScanDataAsync(
-                            connection,
-                            continueLastScan ? currentScan.Data.StageFileScanInitialized : false,
-                            false,
-                            DateTime.Now,
-                            null);
+                transaction.Commit();
 
-                        var settings = await settingsRepository.GetSettingsAsync(null);
+                await currentScan.UpdateFileScanDataAsync(connection, true, false, currentScan.Data.FileScanStartDate, null);
+            }
 
-                        if (!continueLastScan)
-                        {
-                            using var transaction = connection.BeginTransaction();
+            await ProcessTreeAsync(
+                connection,
+                folderRepository,
+                fileRepository,
+                bitRotRepository,
+                settings,
+                currentScan,
+                continueLastScan);
 
-                            await _scanStatus.UpdateAsync("Mark all files in DB as untouched...", 0.0);
-                            await fileRepository.MarkAllFilesAsUntouchedAsync();
-
-                            await _scanStatus.UpdateAsync("Clear all existing bitrot from database...", 0.0);
-                            await bitRotRepository.DeleteAllAsync(currentScan.Data);
-
-                            transaction.Commit();
-
-                            await currentScan.UpdateFileScanDataAsync(connection, true, false, currentScan.Data.FileScanStartDate, null);
-                        }
-
-                        await ProcessTreeAsync(
-                            connection,
-                            folderRepository,
-                            fileRepository,
-                            bitRotRepository,
-                            settings,
-                            currentScan,
-                            continueLastScan);
-
-                        await currentScan.UpdateFileScanDataAsync(connection, true, true, currentScan.Data.FolderScanStartDate, DateTime.Now);
-                    }
-                    catch (Exception ex)
-                    {
-                        cs.SetException(ex);
-                    }
-
-                    cs.SetResult();
-                },
-                TaskCreationOptions.LongRunning);
-            await cs.Task;
-        }
-        finally
-        {
-            await _scanStatus.EndAsync();
-        }
+            await currentScan.UpdateFileScanDataAsync(connection, true, true, currentScan.Data.FolderScanStartDate, DateTime.Now);
+        });
     }
 
     private async Task ProcessTreeAsync(

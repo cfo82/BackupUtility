@@ -11,10 +11,9 @@ using Microsoft.Extensions.Logging;
 /// <summary>
 /// Default-Implementation of <see cref="IOrphanedFileEnumerator"/>.
 /// </summary>
-public class OrphanedFileEnumerator : IOrphanedFileEnumerator
+public class OrphanedFileEnumerator : ScanOperationBase, IOrphanedFileEnumerator
 {
     private readonly ILogger<OrphanedFileEnumerator> _logger;
-    private readonly IProjectManager _projectManager;
     private readonly IScanStatus _scanStatus;
 
     /// <summary>
@@ -27,92 +26,56 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
         ILogger<OrphanedFileEnumerator> logger,
         IProjectManager projectManager,
         IScanStatusManager longRunningOperationManager)
+        : base(projectManager)
     {
         _logger = logger;
-        _projectManager = projectManager;
         _scanStatus = longRunningOperationManager.FullScanStatus.OrphanedFileScanStatus;
     }
 
     /// <inheritdoc />
     public async Task EnumerateOrphanedFilesAsync()
     {
-        try
+        await SpawnAndFinishLongRunningTaskAsync(_scanStatus, async (currentProject, currentScan) =>
         {
-            await _scanStatus.BeginAsync();
+            var connection = currentProject.Data.Connection;
+            var settingsRepository = currentProject.Data.SettingsRepository;
+            var folderRepository = currentProject.Data.FolderRepository;
+            var orphanedFilesRepository = currentProject.Data.OrphanedFileRepository;
 
-            var cs = new TaskCompletionSource();
+            await currentScan.UpdateOrphanedFilesScanDataAsync(connection, false, DateTime.Now, null);
 
-            await Task.Factory.StartNew(
-                async () =>
+            var settings = await settingsRepository.GetSettingsAsync(null);
+
+            using (var transaction = connection.BeginTransaction())
+            {
+                await _scanStatus.UpdateAsync("Enumerate orphaned files...", null);
+                await orphanedFilesRepository.DeleteAllAsync();
+                await EnumerateOrphanedFilesRecursiveAsync(connection, folderRepository, orphanedFilesRepository, settings.MirrorPath, settings.RootPath, settings);
+                transaction.Commit();
+            }
+
+            using (var transaction = connection.BeginTransaction())
+            {
+                await _scanStatus.UpdateAsync("Remove duplication marks from folders...", null);
+                await folderRepository.RemoveAllDuplicateMarks(DriveType.Mirror);
+                transaction.Commit();
+            }
+
+            using (var transaction = connection.BeginTransaction())
+            {
+                await _scanStatus.UpdateAsync("Scan for entire folders still residing on working drive...", null);
+                var folderCount = await folderRepository.GetFolderCount(DriveType.Mirror);
+                var rootFolders = await folderRepository.GetRootFolders(DriveType.Mirror);
+                foreach (var rootFolder in rootFolders)
                 {
-                    try
-                    {
-                        var currentProject = _projectManager.CurrentProject;
-                        var currentScan = currentProject?.CurrentScan;
+                    await RunDuplicateFolderAnalysisRecursiveAsync(folderRepository, orphanedFilesRepository, rootFolder, folderCount, new FolderCounter { Index = 0 });
+                }
 
-                        if (currentProject == null || !currentProject.IsReady)
-                        {
-                            throw new InvalidOperationException("Project is not opened or not ready.");
-                        }
+                transaction.Commit();
+            }
 
-                        if (currentScan == null)
-                        {
-                            throw new InvalidOperationException("No current scan is available.");
-                        }
-
-                        var connection = currentProject.Data.Connection;
-                        var settingsRepository = currentProject.Data.SettingsRepository;
-                        var folderRepository = currentProject.Data.FolderRepository;
-                        var orphanedFilesRepository = currentProject.Data.OrphanedFileRepository;
-
-                        await currentScan.UpdateOrphanedFilesScanDataAsync(connection, false, DateTime.Now, null);
-
-                        var settings = await settingsRepository.GetSettingsAsync(null);
-
-                        using (var transaction = connection.BeginTransaction())
-                        {
-                            await _scanStatus.UpdateAsync("Enumerate orphaned files...", null);
-                            await orphanedFilesRepository.DeleteAllAsync();
-                            await EnumerateOrphanedFilesRecursiveAsync(connection, folderRepository, orphanedFilesRepository, settings.MirrorPath, settings.RootPath, settings);
-                            transaction.Commit();
-                        }
-
-                        using (var transaction = connection.BeginTransaction())
-                        {
-                            await _scanStatus.UpdateAsync("Remove duplication marks from folders...", null);
-                            await folderRepository.RemoveAllDuplicateMarks(DriveType.Mirror);
-                            transaction.Commit();
-                        }
-
-                        using (var transaction = connection.BeginTransaction())
-                        {
-                            await _scanStatus.UpdateAsync("Scan for entire folders still residing on working drive...", null);
-                            var folderCount = await folderRepository.GetFolderCount(DriveType.Mirror);
-                            var rootFolders = await folderRepository.GetRootFolders(DriveType.Mirror);
-                            foreach (var rootFolder in rootFolders)
-                            {
-                                await RunDuplicateFolderAnalysisRecursiveAsync(folderRepository, orphanedFilesRepository, rootFolder, folderCount, new FolderCounter { Index = 0 });
-                            }
-
-                            transaction.Commit();
-                        }
-
-                        await currentScan.UpdateOrphanedFilesScanDataAsync(connection, true, currentScan.Data.FolderScanStartDate, DateTime.Now);
-                    }
-                    catch (Exception ex)
-                    {
-                        cs.SetException(ex);
-                    }
-
-                    cs.SetResult();
-                },
-                TaskCreationOptions.LongRunning);
-            await cs.Task;
-        }
-        finally
-        {
-            await _scanStatus.EndAsync();
-        }
+            await currentScan.UpdateOrphanedFilesScanDataAsync(connection, true, currentScan.Data.FolderScanStartDate, DateTime.Now);
+        });
     }
 
     private async Task EnumerateOrphanedFilesRecursiveAsync(

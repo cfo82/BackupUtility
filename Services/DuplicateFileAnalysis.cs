@@ -13,10 +13,9 @@ using Microsoft.Extensions.Logging;
 /// <summary>
 /// Default-Implementation of <see cref="IDuplicateFileAnalysis"/>.
 /// </summary>
-public class DuplicateFileAnalysis : IDuplicateFileAnalysis
+public class DuplicateFileAnalysis : ScanOperationBase, IDuplicateFileAnalysis
 {
     private readonly ILogger<DuplicateFileAnalysis> _logger;
-    private readonly IProjectManager _projectManager;
     private readonly IScanStatus _scanStatus;
 
     /// <summary>
@@ -29,67 +28,31 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
         ILogger<DuplicateFileAnalysis> logger,
         IProjectManager projectManager,
         IScanStatusManager longRunningOperationManager)
+        : base(projectManager)
     {
         _logger = logger;
-        _projectManager = projectManager;
         _scanStatus = longRunningOperationManager.FullScanStatus.DuplicateFileAnalysisStatus;
     }
 
     /// <inheritdoc />
     public async Task RunDuplicateFileAnalysis()
     {
-        try
+        await SpawnAndFinishLongRunningTaskAsync(_scanStatus, async (currentProject, currentScan) =>
         {
-            await _scanStatus.BeginAsync();
+            var connection = currentProject.Data.Connection;
+            var folderRepository = currentProject.Data.FolderRepository;
+            var fileRepository = currentProject.Data.FileRepository;
 
-            var cs = new TaskCompletionSource();
+            await currentScan.UpdateDuplicateFileAnalysisDataAsync(connection, false, DateTime.Now, null);
 
-            await Task.Factory.StartNew(
-                async () =>
-                {
-                    try
-                    {
-                        var currentProject = _projectManager.CurrentProject;
-                        var currentScan = currentProject?.CurrentScan;
+            await RemoveAllDuplicationMarksAsync(connection, folderRepository, fileRepository);
 
-                        if (currentProject == null || !currentProject.IsReady)
-                        {
-                            throw new InvalidOperationException("Project is not opened or not ready.");
-                        }
+            await ProcessTreeAsync(connection, folderRepository, fileRepository);
 
-                        if (currentScan == null)
-                        {
-                            throw new InvalidOperationException("No current scan is available.");
-                        }
+            await ProcessDuplicateFoldersAsync(connection, folderRepository);
 
-                        var connection = currentProject.Data.Connection;
-                        var folderRepository = currentProject.Data.FolderRepository;
-                        var fileRepository = currentProject.Data.FileRepository;
-
-                        await currentScan.UpdateDuplicateFileAnalysisDataAsync(connection, false, DateTime.Now, null);
-
-                        await RemoveAllDuplicationMarksAsync(connection, folderRepository, fileRepository);
-
-                        await ProcessTreeAsync(connection, folderRepository, fileRepository);
-
-                        await ProcessDuplicateFoldersAsync(connection, folderRepository);
-
-                        await currentScan.UpdateDuplicateFileAnalysisDataAsync(connection, true, currentScan.Data.FolderScanStartDate, DateTime.Now);
-                    }
-                    catch (Exception ex)
-                    {
-                        cs.SetException(ex);
-                    }
-
-                    cs.SetResult();
-                },
-                TaskCreationOptions.LongRunning);
-            await cs.Task;
-        }
-        finally
-        {
-            await _scanStatus.EndAsync();
-        }
+            await currentScan.UpdateDuplicateFileAnalysisDataAsync(connection, true, currentScan.Data.FolderScanStartDate, DateTime.Now);
+        });
     }
 
     private async Task RemoveAllDuplicationMarksAsync(IDbConnection connection, IFolderRepository folderRepository, IFileRepository fileRepository)

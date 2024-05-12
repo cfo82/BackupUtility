@@ -1,6 +1,5 @@
 namespace BackupUtilities.Services;
 
-using System.Data;
 using System.Threading.Tasks;
 using BackupUtilities.Data.Interfaces;
 using BackupUtilities.Services.Interfaces;
@@ -9,10 +8,9 @@ using Microsoft.Extensions.Logging;
 /// <summary>
 /// Default-Implementation of <see cref="IFolderEnumerator"/>.
 /// </summary>
-public class FolderEnumerator : IFolderEnumerator
+public class FolderEnumerator : ScanOperationBase, IFolderEnumerator
 {
     private readonly ILogger<FolderEnumerator> _logger;
-    private readonly IProjectManager _projectManager;
     private readonly IScanStatus _scanStatus;
 
     /// <summary>
@@ -25,89 +23,52 @@ public class FolderEnumerator : IFolderEnumerator
         ILogger<FolderEnumerator> logger,
         IProjectManager projectManager,
         IScanStatusManager longRunningOperationManager)
+        : base(projectManager)
     {
         _logger = logger;
-        _projectManager = projectManager;
         _scanStatus = longRunningOperationManager.FullScanStatus.FolderScanStatus;
     }
 
     /// <inheritdoc />
     public async Task EnumerateFoldersAsync()
     {
-        try
+        await SpawnAndFinishLongRunningTaskAsync(_scanStatus, async (currentProject, currentScan) =>
         {
-            await _scanStatus.BeginAsync();
+            var connection = currentProject.Data.Connection;
+            var settingsRepository = currentProject.Data.SettingsRepository;
+            var folderRepository = currentProject.Data.FolderRepository;
 
-            var cs = new TaskCompletionSource();
+            await currentScan.UpdateFolderScanDataAsync(connection, false, DateTime.Now, null);
 
-            await Task.Factory.StartNew(
-                async () =>
+            var settings = await settingsRepository.GetSettingsAsync(null);
+
+            using (var transaction = connection.BeginTransaction())
+            {
+                await folderRepository.MarkAllFoldersAsUntouchedAsync();
+                transaction.Commit();
+            }
+
+            using (var transaction = connection.BeginTransaction())
+            {
+                var rootPath = settings.RootPath;
+                var rootFolder = await folderRepository.SaveFullPathAsync(rootPath, DriveType.Working);
+
+                var fullPath = await folderRepository.GetFullPathForFolderAsync(rootFolder);
+                foreach (var folder in fullPath)
                 {
-                    try
-                    {
-                        var currentProject = _projectManager.CurrentProject;
-                        var currentScan = currentProject?.CurrentScan;
+                    await folderRepository.TouchFolderAsync(folder);
+                }
 
-                        if (currentProject == null || !currentProject.IsReady)
-                        {
-                            throw new InvalidOperationException("Project is not opened or not ready.");
-                        }
+                foreach (var subDirectory in Directory.GetDirectories(rootPath))
+                {
+                    await EnumerateFoldersRecursiveAsync(folderRepository, rootFolder, subDirectory, settings);
+                }
 
-                        if (currentScan == null)
-                        {
-                            throw new InvalidOperationException("No current scan is available.");
-                        }
+                transaction.Commit();
+            }
 
-                        var connection = currentProject.Data.Connection;
-                        var settingsRepository = currentProject.Data.SettingsRepository;
-                        var folderRepository = currentProject.Data.FolderRepository;
-
-                        await currentScan.UpdateFolderScanDataAsync(connection, false, DateTime.Now, null);
-
-                        var settings = await settingsRepository.GetSettingsAsync(null);
-
-                        using (var transaction = connection.BeginTransaction())
-                        {
-                            await folderRepository.MarkAllFoldersAsUntouchedAsync();
-                            transaction.Commit();
-                        }
-
-                        using (var transaction = connection.BeginTransaction())
-                        {
-                            var rootPath = settings.RootPath;
-                            var rootFolder = await folderRepository.SaveFullPathAsync(rootPath, DriveType.Working);
-
-                            var fullPath = await folderRepository.GetFullPathForFolderAsync(rootFolder);
-                            foreach (var folder in fullPath)
-                            {
-                                await folderRepository.TouchFolderAsync(folder);
-                            }
-
-                            foreach (var subDirectory in Directory.GetDirectories(rootPath))
-                            {
-                                await EnumerateFoldersRecursiveAsync(folderRepository, rootFolder, subDirectory, settings);
-                            }
-
-                            transaction.Commit();
-                        }
-
-                        await currentScan.UpdateFolderScanDataAsync(connection, true, currentScan.Data.FolderScanStartDate, DateTime.Now);
-                    }
-                    catch (Exception ex)
-                    {
-                        cs.SetException(ex);
-                    }
-
-                    cs.SetResult();
-                },
-                TaskCreationOptions.LongRunning);
-
-            await cs.Task;
-        }
-        finally
-        {
-            await _scanStatus.EndAsync();
-        }
+            await currentScan.UpdateFolderScanDataAsync(connection, true, currentScan.Data.FolderScanStartDate, DateTime.Now);
+        });
     }
 
     private async Task EnumerateFoldersRecursiveAsync(

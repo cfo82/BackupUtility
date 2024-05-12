@@ -13,10 +13,10 @@ public class ScanViewModelBase : BindableBase
 {
     private readonly IScanStatusManager _longRunningOperationManager;
     private readonly IErrorHandler _errorHandler;
-    private readonly IFolderEnumerator _folderEnumerator;
-    private readonly IFileEnumerator _fileEnumerator;
+    private readonly IFolderScan _folderEnumerator;
+    private readonly IFileScan _fileEnumerator;
     private readonly IDuplicateFileAnalysis _duplicateFileAnalysis;
-    private readonly IOrphanedFileEnumerator _orphanedFileEnumerator;
+    private readonly IOrphanedFileScan _orphanedFileEnumerator;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ScanViewModelBase"/> class.
@@ -30,10 +30,10 @@ public class ScanViewModelBase : BindableBase
     public ScanViewModelBase(
         IScanStatusManager longRunningOperationManager,
         IErrorHandler errorHandler,
-        IFolderEnumerator folderEnumerator,
-        IFileEnumerator fileEnumerator,
+        IFolderScan folderEnumerator,
+        IFileScan fileEnumerator,
         IDuplicateFileAnalysis duplicateFileAnalysis,
-        IOrphanedFileEnumerator orphanedFileEnumerator)
+        IOrphanedFileScan orphanedFileEnumerator)
     {
         _longRunningOperationManager = longRunningOperationManager;
         _errorHandler = errorHandler;

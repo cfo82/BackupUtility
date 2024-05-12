@@ -83,8 +83,8 @@ app.AddCommand(
         var errorHandler = new ErrorHandler(loggerFactory.CreateLogger<ErrorHandler>());
 
         logger.LogInformation("Enumerate Folders...");
-        var enumerateFolders = new FolderEnumerator(
-            loggerFactory.CreateLogger<FolderEnumerator>(),
+        var enumerateFolders = new FolderScan(
+            loggerFactory.CreateLogger<FolderScan>(),
             projectManager,
             scanStatusManager);
 
@@ -112,8 +112,8 @@ app.AddCommand(
         var errorHandler = new ErrorHandler(loggerFactory.CreateLogger<ErrorHandler>());
 
         logger.LogInformation("Enumerate Folders...");
-        var enumerateFiles = new FileEnumerator(
-            loggerFactory.CreateLogger<FileEnumerator>(),
+        var enumerateFiles = new FileScan(
+            loggerFactory.CreateLogger<FileScan>(),
             projectManager,
             scanStatusManager);
 
@@ -170,8 +170,8 @@ app.AddCommand(
         var errorHandler = new ErrorHandler(loggerFactory.CreateLogger<ErrorHandler>());
 
         logger.LogInformation("Find orphaned files...");
-        var orphanedFileEnumerator = new OrphanedFileEnumerator(
-            loggerFactory.CreateLogger<OrphanedFileEnumerator>(),
+        var orphanedFileEnumerator = new OrphanedFileScan(
+            loggerFactory.CreateLogger<OrphanedFileScan>(),
             projectManager,
             scanStatusManager);
 
@@ -203,10 +203,10 @@ app.AddCommand(
         var dispatcherService = new ConsoleDispatcherService();
         var scanStatusManager = new ScanStatusManager(dispatcherService);
         var errorHandler = new ErrorHandler(loggerFactory.CreateLogger<ErrorHandler>());
-        var folderEnumerator = new FolderEnumerator(loggerFactory.CreateLogger<FolderEnumerator>(), projectManager, scanStatusManager);
-        var fileEnumerator = new FileEnumerator(loggerFactory.CreateLogger<FileEnumerator>(), projectManager, scanStatusManager);
+        var folderEnumerator = new FolderScan(loggerFactory.CreateLogger<FolderScan>(), projectManager, scanStatusManager);
+        var fileEnumerator = new FileScan(loggerFactory.CreateLogger<FileScan>(), projectManager, scanStatusManager);
         var duplicateFileAnalysis = new DuplicateFileAnalysis(loggerFactory.CreateLogger<DuplicateFileAnalysis>(), projectManager, scanStatusManager);
-        var orphanedFileEnumerator = new OrphanedFileEnumerator(loggerFactory.CreateLogger<OrphanedFileEnumerator>(), projectManager, scanStatusManager);
+        var orphanedFileEnumerator = new OrphanedFileScan(loggerFactory.CreateLogger<OrphanedFileScan>(), projectManager, scanStatusManager);
         var completeScan = new CompleteScan(loggerFactory.CreateLogger<CompleteScan>(), projectManager, scanStatusManager, folderEnumerator, fileEnumerator, duplicateFileAnalysis, orphanedFileEnumerator);
         if (project == null)
         {

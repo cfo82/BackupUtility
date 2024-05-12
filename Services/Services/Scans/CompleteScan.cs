@@ -15,10 +15,10 @@ public class CompleteScan : ICompleteScan
     private readonly ILogger<CompleteScan> _logger;
     private readonly IProjectManager _projectManager;
     private readonly IScanStatusManager _scanStatusManager;
-    private readonly IFolderEnumerator _folderEnumerator;
-    private readonly IFileEnumerator _fileEnumerator;
+    private readonly IFolderScan _folderEnumerator;
+    private readonly IFileScan _fileEnumerator;
     private readonly IDuplicateFileAnalysis _duplicateFileAnalysis;
-    private readonly IOrphanedFileEnumerator _orphanedFileEnumerator;
+    private readonly IOrphanedFileScan _orphanedFileEnumerator;
     private readonly IScanStatus _scanStatus;
 
     /// <summary>
@@ -35,10 +35,10 @@ public class CompleteScan : ICompleteScan
         ILogger<CompleteScan> logger,
         IProjectManager projectManager,
         IScanStatusManager scanStatusManager,
-        IFolderEnumerator folderEnumerator,
-        IFileEnumerator fileEnumerator,
+        IFolderScan folderEnumerator,
+        IFileScan fileEnumerator,
         IDuplicateFileAnalysis duplicateFileAnalysis,
-        IOrphanedFileEnumerator orphanedFileEnumerator)
+        IOrphanedFileScan orphanedFileEnumerator)
     {
         _logger = logger;
         _projectManager = projectManager;

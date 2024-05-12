@@ -16,7 +16,7 @@ public class FolderScanViewModel : BindableBase
 {
     private readonly IScanStatusManager _longRunningOperationManager;
     private readonly IErrorHandler _errorHandler;
-    private readonly IFolderEnumerator _folderEnumerator;
+    private readonly IFolderScan _folderEnumerator;
     private bool _isRunButtonEnabled;
     private string _progressText;
     private bool _isProgressBarIndeterminate;
@@ -31,7 +31,7 @@ public class FolderScanViewModel : BindableBase
     public FolderScanViewModel(
         IScanStatusManager longRunningOperationManager,
         IErrorHandler errorHandler,
-        IFolderEnumerator folderEnumerator)
+        IFolderScan folderEnumerator)
     {
         _longRunningOperationManager = longRunningOperationManager;
         _errorHandler = errorHandler;

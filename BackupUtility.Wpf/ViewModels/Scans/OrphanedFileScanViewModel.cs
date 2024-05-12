@@ -16,7 +16,7 @@ public class OrphanedFileScanViewModel : BindableBase
 {
     private readonly IScanStatusManager _longRunningOperationManager;
     private readonly IErrorHandler _errorHandler;
-    private readonly IOrphanedFileEnumerator _orphanedFileEnumerator;
+    private readonly IOrphanedFileScan _orphanedFileEnumerator;
     private bool _isRunButtonEnabled;
     private string _progressText;
     private bool _isProgressBarIndeterminate;
@@ -31,7 +31,7 @@ public class OrphanedFileScanViewModel : BindableBase
     public OrphanedFileScanViewModel(
         IScanStatusManager longRunningOperationManager,
         IErrorHandler errorHandler,
-        IOrphanedFileEnumerator orphanedFileEnumerator)
+        IOrphanedFileScan orphanedFileEnumerator)
     {
         _longRunningOperationManager = longRunningOperationManager;
         _errorHandler = errorHandler;

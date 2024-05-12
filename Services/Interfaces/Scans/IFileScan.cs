@@ -6,7 +6,7 @@ using BackupUtilities.Data.Interfaces;
 /// <summary>
 /// An interface to enumerate and store files. Precondition is that the folder enumerator has already enumerated all folders.
 /// </summary>
-public interface IFileEnumerator
+public interface IFileScan
 {
     /// <summary>
     /// Enumerate all files inside the settings root folder and its subfolders and stores them inside the database

@@ -16,7 +16,7 @@ public class FileScanViewModel : BindableBase
 {
     private readonly IScanStatusManager _longRunningOperationManager;
     private readonly IErrorHandler _errorHandler;
-    private readonly IFileEnumerator _fileEnumerator;
+    private readonly IFileScan _fileEnumerator;
     private bool _isRunButtonEnabled;
     private string _progressText;
     private bool _isProgressBarIndeterminate;
@@ -33,7 +33,7 @@ public class FileScanViewModel : BindableBase
     public FileScanViewModel(
         IScanStatusManager longRunningOperationManager,
         IErrorHandler errorHandler,
-        IFileEnumerator fileEnumerator)
+        IFileScan fileEnumerator)
     {
         _longRunningOperationManager = longRunningOperationManager;
         _errorHandler = errorHandler;

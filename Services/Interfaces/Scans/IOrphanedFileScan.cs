@@ -7,7 +7,7 @@ using BackupUtilities.Data.Interfaces;
 /// An interface to search orphaned files. That means files on the Mirror drive that have been deleted on the
 /// original drive and are therefore going to be deleted during the next robocopy /MIR.
 /// </summary>
-public interface IOrphanedFileEnumerator
+public interface IOrphanedFileScan
 {
     /// <summary>
     /// Enumerate all orphaned files on the mirror drive and its subfolders and store them inside the database

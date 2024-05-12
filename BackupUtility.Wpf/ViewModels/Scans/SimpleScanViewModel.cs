@@ -22,10 +22,10 @@ public class SimpleScanViewModel : ScanViewModelBase
     public SimpleScanViewModel(
         IScanStatusManager longRunningOperationManager,
         IErrorHandler errorHandler,
-        IFolderEnumerator folderEnumerator,
-        IFileEnumerator fileEnumerator,
+        IFolderScan folderEnumerator,
+        IFileScan fileEnumerator,
         IDuplicateFileAnalysis duplicateFileAnalysis,
-        IOrphanedFileEnumerator orphanedFileEnumerator)
+        IOrphanedFileScan orphanedFileEnumerator)
         : base(longRunningOperationManager, errorHandler, folderEnumerator, fileEnumerator, duplicateFileAnalysis, orphanedFileEnumerator)
     {
     }

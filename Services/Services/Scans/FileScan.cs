@@ -13,21 +13,21 @@ using BackupUtilities.Services.Interfaces.Status;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// Default-Implementation of <see cref="IFileEnumerator"/>.
+/// Default-Implementation of <see cref="IFileScan"/>.
 /// </summary>
-public class FileEnumerator : ScanOperationBase, IFileEnumerator
+public class FileScan : ScanOperationBase, IFileScan
 {
-    private readonly ILogger<FileEnumerator> _logger;
+    private readonly ILogger<FileScan> _logger;
     private readonly IFileScanStatus _scanStatus;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FileEnumerator"/> class.
+    /// Initializes a new instance of the <see cref="FileScan"/> class.
     /// </summary>
     /// <param name="logger">A new logger instance to be used.</param>
     /// <param name="projectManager">The project manager.</param>
     /// <param name="longRunningOperationManager">The long running operation manager.</param>
-    public FileEnumerator(
-        ILogger<FileEnumerator> logger,
+    public FileScan(
+        ILogger<FileScan> logger,
         IProjectManager projectManager,
         IScanStatusManager longRunningOperationManager)
         : base(projectManager)

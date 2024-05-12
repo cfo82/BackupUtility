@@ -12,21 +12,21 @@ using BackupUtilities.Services.Interfaces.Status;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// Default-Implementation of <see cref="IOrphanedFileEnumerator"/>.
+/// Default-Implementation of <see cref="IOrphanedFileScan"/>.
 /// </summary>
-public class OrphanedFileEnumerator : ScanOperationBase, IOrphanedFileEnumerator
+public class OrphanedFileScan : ScanOperationBase, IOrphanedFileScan
 {
-    private readonly ILogger<OrphanedFileEnumerator> _logger;
+    private readonly ILogger<OrphanedFileScan> _logger;
     private readonly IScanStatus _scanStatus;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="OrphanedFileEnumerator"/> class.
+    /// Initializes a new instance of the <see cref="OrphanedFileScan"/> class.
     /// </summary>
     /// <param name="logger">A new logger instance to be used.</param>
     /// <param name="projectManager">The project manager.</param>
     /// <param name="longRunningOperationManager">The long running operation manager.</param>
-    public OrphanedFileEnumerator(
-        ILogger<OrphanedFileEnumerator> logger,
+    public OrphanedFileScan(
+        ILogger<OrphanedFileScan> logger,
         IProjectManager projectManager,
         IScanStatusManager longRunningOperationManager)
         : base(projectManager)

@@ -9,21 +9,21 @@ using BackupUtilities.Services.Interfaces.Status;
 using Microsoft.Extensions.Logging;
 
 /// <summary>
-/// Default-Implementation of <see cref="IFolderEnumerator"/>.
+/// Default-Implementation of <see cref="IFolderScan"/>.
 /// </summary>
-public class FolderEnumerator : ScanOperationBase, IFolderEnumerator
+public class FolderScan : ScanOperationBase, IFolderScan
 {
-    private readonly ILogger<FolderEnumerator> _logger;
+    private readonly ILogger<FolderScan> _logger;
     private readonly IScanStatus _scanStatus;
 
     /// <summary>
-    /// Initializes a new instance of the <see cref="FolderEnumerator"/> class.
+    /// Initializes a new instance of the <see cref="FolderScan"/> class.
     /// </summary>
     /// <param name="logger">A new logger instance to be used.</param>
     /// <param name="projectManager">The project manager.</param>
     /// <param name="longRunningOperationManager">The long running operation manager.</param>
-    public FolderEnumerator(
-        ILogger<FolderEnumerator> logger,
+    public FolderScan(
+        ILogger<FolderScan> logger,
         IProjectManager projectManager,
         IScanStatusManager longRunningOperationManager)
         : base(projectManager)

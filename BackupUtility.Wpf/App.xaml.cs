@@ -67,10 +67,10 @@ public partial class App : PrismApplication
         containerRegistry.RegisterSingleton<IUiDispatcherService, UiDispatcherService>();
         containerRegistry.RegisterSingleton<IScanStatusManager, ScanStatusManager>();
         containerRegistry.RegisterSingleton<IErrorHandler, ErrorHandler>();
-        containerRegistry.Register<IFolderEnumerator, FolderEnumerator>();
-        containerRegistry.Register<IFileEnumerator, FileEnumerator>();
+        containerRegistry.Register<IFolderScan, FolderScan>();
+        containerRegistry.Register<IFileScan, FileScan>();
         containerRegistry.Register<IDuplicateFileAnalysis, DuplicateFileAnalysis>();
-        containerRegistry.Register<IOrphanedFileEnumerator, OrphanedFileEnumerator>();
+        containerRegistry.Register<IOrphanedFileScan, OrphanedFileScan>();
         containerRegistry.Register<ICompleteScan, CompleteScan>();
         containerRegistry.Register(typeof(ILogger<>), typeof(Logger<>));
 

@@ -22,13 +22,13 @@ public class BitRotRepository : IBitRotRepository
     }
 
     /// <inheritdoc />
-    public async Task InitAsync(IDbConnection connection, int version)
+    public async Task InitAsync(int version)
     {
         switch (version)
         {
         case 0:
             {
-                await connection.ExecuteAsync(
+                await _context.Connection.ExecuteAsync(
                     @"CREATE TABLE BitRot(
                             Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                             ScanId INTEGER DEFAULT NULL,
@@ -38,7 +38,7 @@ public class BitRotRepository : IBitRotRepository
                             FOREIGN KEY(FolderId, FileName) REFERENCES Files(ParentId, Name) ON DELETE NO ACTION ON UPDATE NO ACTION
                         );");
 
-                await connection.ExecuteAsync(@"CREATE INDEX BitRot_ScanId ON BitRot(ScanId);");
+                await _context.Connection.ExecuteAsync(@"CREATE INDEX BitRot_ScanId ON BitRot(ScanId);");
                 break;
             }
         }

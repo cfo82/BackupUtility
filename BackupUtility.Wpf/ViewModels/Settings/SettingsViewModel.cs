@@ -312,10 +312,9 @@ public class SettingsViewModel : BindableBase
                 return;
             }
 
-            var connection = _projectManager.CurrentProject.Data.Connection;
             var settingsRepository = _projectManager.CurrentProject.Data.SettingsRepository;
 
-            _settings = await settingsRepository.GetSettingsAsync(connection, null);
+            _settings = await settingsRepository.GetSettingsAsync(null);
             RootPath = _settings.RootPath;
             MirrorPath = _settings.MirrorPath;
             IgnoredFolders.Clear();

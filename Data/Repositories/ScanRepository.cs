@@ -24,13 +24,13 @@ public class ScanRepository : IScanRepository
     }
 
     /// <inheritdoc />
-    public async Task InitAsync(IDbConnection connection, int version)
+    public async Task InitAsync(int version)
     {
         switch (version)
         {
         case 0:
             {
-                await connection.ExecuteAsync(
+                await _context.Connection.ExecuteAsync(
                     @"CREATE TABLE Scans(
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
                         SettingsId INTEGER NOT NULL,
@@ -52,16 +52,16 @@ public class ScanRepository : IScanRepository
                         OrphanedFileEnumerationFinishedDate TEXT,
                         FOREIGN KEY(SettingsId) REFERENCES Settings(SettingsID) ON DELETE CASCADE ON UPDATE NO ACTION);");
 
-                await connection.ExecuteAsync(@"CREATE INDEX Scans_SettingsID ON Scans(SettingsID);");
+                await _context.Connection.ExecuteAsync(@"CREATE INDEX Scans_SettingsID ON Scans(SettingsID);");
                 break;
             }
         }
     }
 
     /// <inheritdoc />
-    public Task<Scan?> GetCurrentScan(IDbConnection connection)
+    public Task<Scan?> GetCurrentScan()
     {
-        return connection.QueryFirstOrDefaultAsync<Scan>(
+        return _context.Connection.QueryFirstOrDefaultAsync<Scan>(
             @"SELECT
                 Id,
                 SettingsId,
@@ -89,11 +89,11 @@ public class ScanRepository : IScanRepository
     }
 
     /// <inheritdoc />
-    public async Task<Scan> CreateScanAsync(IDbConnection connection)
+    public async Task<Scan> CreateScanAsync()
     {
-        using var transaction = connection.BeginTransaction();
+        using var transaction = _context.Connection.BeginTransaction();
 
-        var settings = await _settingsRepository.CreateCopyForScan(connection);
+        var settings = await _settingsRepository.CreateCopyForScan();
 
         var scan = new Scan()
         {
@@ -116,7 +116,7 @@ public class ScanRepository : IScanRepository
             OrphanedFileEnumerationFinishedDate = null,
         };
 
-        scan.Id = await connection.QuerySingleAsync<long>(
+        scan.Id = await _context.Connection.QuerySingleAsync<long>(
             @"INSERT INTO Scans(
                 SettingsId,
                 CreatedDate,
@@ -164,9 +164,9 @@ public class ScanRepository : IScanRepository
     }
 
     /// <inheritdoc />
-    public async Task SaveScanAsync(IDbConnection connection, Scan scan)
+    public async Task SaveScanAsync(Scan scan)
     {
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"UPDATE Scans SET
                 SettingsId = @SettingsId,
                 CreatedDate = @CreatedDate,

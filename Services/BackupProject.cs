@@ -75,12 +75,12 @@ public class BackupProject : IBackupProject
     /// <returns>The newly created project.</returns>
     public static async Task<BackupProject> CreateBackupProjectAsync(DbContextData data)
     {
-        var settings = await data.SettingsRepository.GetSettingsAsync(data.Connection, null);
-        var scanData = await data.ScanRepository.GetCurrentScan(data.Connection);
+        var settings = await data.SettingsRepository.GetSettingsAsync(null);
+        var scanData = await data.ScanRepository.GetCurrentScan();
         IScan? scan = null;
         if (scanData != null)
         {
-            var scanSettings = await data.SettingsRepository.GetSettingsAsync(data.Connection, scanData);
+            var scanSettings = await data.SettingsRepository.GetSettingsAsync(scanData);
             scan = new Scan(data.ScanRepository, scanData, scanSettings);
         }
 
@@ -90,8 +90,8 @@ public class BackupProject : IBackupProject
     /// <inheritdoc />
     public async Task<Settings> SaveSettingsAsync(Settings settings)
     {
-        await _data.SettingsRepository.SaveSettingsAsync(_data.Connection, settings);
-        _settings = await _data.SettingsRepository.GetSettingsAsync(_data.Connection, null);
+        await _data.SettingsRepository.SaveSettingsAsync(settings);
+        _settings = await _data.SettingsRepository.GetSettingsAsync(null);
 
         UpdateIsReady();
 
@@ -106,12 +106,11 @@ public class BackupProject : IBackupProject
             throw new InvalidOperationException("Project is not opened or not ready.");
         }
 
-        var connection = Data.Connection;
         var scanRepository = Data.ScanRepository;
         var settingsRepository = Data.SettingsRepository;
 
-        var scan = await scanRepository.CreateScanAsync(connection);
-        var settings = await settingsRepository.GetSettingsAsync(connection, scan);
+        var scan = await scanRepository.CreateScanAsync();
+        var settings = await settingsRepository.GetSettingsAsync(scan);
 
         _currentScan = new Scan(scanRepository, scan, settings);
 

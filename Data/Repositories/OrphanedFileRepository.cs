@@ -24,13 +24,13 @@ public class OrphanedFileRepository : IOrphanedFileRepository
     }
 
     /// <inheritdoc />
-    public async Task InitAsync(IDbConnection connection, int version)
+    public async Task InitAsync(int version)
     {
         switch (version)
         {
         case 0:
             {
-                await connection.ExecuteAsync(
+                await _context.Connection.ExecuteAsync(
                     @"CREATE TABLE OrphanedFiles(
                             ParentId INTEGER NOT NULL,
                             Name TEXT NOT NULL,
@@ -38,23 +38,23 @@ public class OrphanedFileRepository : IOrphanedFileRepository
                             PRIMARY KEY (ParentId, Name)
                             FOREIGN KEY(ParentId) REFERENCES Folders(Id) ON DELETE CASCADE ON UPDATE NO ACTION
                         );");
-                await connection.ExecuteAsync(@"CREATE INDEX OrphanedFiles_Hash ON OrphanedFiles(Hash);");
+                await _context.Connection.ExecuteAsync(@"CREATE INDEX OrphanedFiles_Hash ON OrphanedFiles(Hash);");
                 break;
             }
         }
     }
 
     /// <inheritdoc />
-    public async Task DeleteAllAsync(IDbConnection connection)
+    public async Task DeleteAllAsync()
     {
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"DELETE FROM OrphanedFiles;");
     }
 
     /// <inheritdoc />
-    public async Task SaveOrphanedFileAsync(IDbConnection connection, OrphanedFile orphanedFile)
+    public async Task SaveOrphanedFileAsync(OrphanedFile orphanedFile)
     {
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"INSERT INTO OrphanedFiles(
                     ParentId,
                     Name,
@@ -68,9 +68,9 @@ public class OrphanedFileRepository : IOrphanedFileRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<OrphanedFile>> EnumerateAllOrphanedFiles(IDbConnection connection)
+    public async Task<IEnumerable<OrphanedFile>> EnumerateAllOrphanedFiles()
     {
-        return await connection.QueryAsync<OrphanedFile>(
+        return await _context.Connection.QueryAsync<OrphanedFile>(
             @"SELECT
                     ParentId,
                     Name,
@@ -82,13 +82,12 @@ public class OrphanedFileRepository : IOrphanedFileRepository
 
     /// <inheritdoc />
     public async Task<IEnumerable<OrphanedFile>> EnumerateOrphanedFilesByFolderAsync(
-        IDbConnection connection,
         Folder parent,
         bool loadWorkingCopies)
     {
         if (!loadWorkingCopies)
         {
-            return await connection.QueryAsync<OrphanedFile>(
+            return await _context.Connection.QueryAsync<OrphanedFile>(
                 @"SELECT
                     ParentId,
                     Name,
@@ -102,7 +101,7 @@ public class OrphanedFileRepository : IOrphanedFileRepository
         }
         else
         {
-            var orphanedFiles = await connection.QueryAsync<OrphanedFile>(
+            var orphanedFiles = await _context.Connection.QueryAsync<OrphanedFile>(
                 @"SELECT
                     ParentId,
                     Name,
@@ -115,7 +114,7 @@ public class OrphanedFileRepository : IOrphanedFileRepository
 
             foreach (var file in orphanedFiles)
             {
-                var duplicates = await _fileRepository.EnumerateDuplicatesWithHash(connection, file.Hash);
+                var duplicates = await _fileRepository.EnumerateDuplicatesWithHash(file.Hash);
                 file.DuplicatesOnLifeDrive.AddRange(duplicates);
                 file.NumCopiesOnLiveDrive = file.DuplicatesOnLifeDrive.Count;
             }

@@ -70,12 +70,11 @@ public class FolderTreeViewModel : BindableBase
                 return;
             }
 
-            var connection = _currentProject.Data.Connection;
             var settingsRepository = _currentProject.Data.SettingsRepository;
             var folderRepository = _currentProject.Data.FolderRepository;
 
-            var settings = await settingsRepository.GetSettingsAsync(connection, null);
-            var rootFolder = await folderRepository.GetFolderAsync(connection, settings.RootPath);
+            var settings = await settingsRepository.GetSettingsAsync(null);
+            var rootFolder = await folderRepository.GetFolderAsync(settings.RootPath);
             if (rootFolder != null)
             {
                 TopLevelItems.Clear();

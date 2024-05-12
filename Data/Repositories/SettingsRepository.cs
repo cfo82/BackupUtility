@@ -21,19 +21,19 @@ public class SettingsRepository : ISettingsRepository
     }
 
     /// <inheritdoc />
-    public async Task InitAsync(IDbConnection connection, int version)
+    public async Task InitAsync(int version)
     {
         switch (version)
         {
         case 0:
             {
-                await connection.ExecuteAsync(
+                await _context.Connection.ExecuteAsync(
                     @"CREATE TABLE Settings(
                         SettingsId INTEGER PRIMARY KEY AUTOINCREMENT,
                         RootPath TEXT NOT NULL,
                         MirrorPath TEXT NOT NULL);");
 
-                await connection.ExecuteAsync(
+                await _context.Connection.ExecuteAsync(
                     @"CREATE TABLE IgnoredFolders(
                         Id INTEGER PRIMARY KEY AUTOINCREMENT,
                         SettingsId INTEGER NOT NULL,
@@ -41,16 +41,16 @@ public class SettingsRepository : ISettingsRepository
                         FOREIGN KEY(SettingsId) REFERENCES Settings(SettingsId) ON DELETE CASCADE ON UPDATE NO ACTION
                     );");
 
-                await connection.ExecuteAsync(@"INSERT INTO Settings(RootPath, MirrorPath) VALUES ('', '');");
+                await _context.Connection.ExecuteAsync(@"INSERT INTO Settings(RootPath, MirrorPath) VALUES ('', '');");
                 break;
             }
         }
     }
 
     /// <inheritdoc />
-    public async Task<Settings> GetSettingsAsync(IDbConnection connection, Scan? scan)
+    public async Task<Settings> GetSettingsAsync(Scan? scan)
     {
-        var settings = await connection.QuerySingleAsync<Settings>(
+        var settings = await _context.Connection.QuerySingleAsync<Settings>(
             @$"SELECT
                 SettingsId,
                 RootPath,
@@ -61,7 +61,7 @@ public class SettingsRepository : ISettingsRepository
                 SettingsId = @SettingsId;",
             new { SettingsId = scan != null ? scan.SettingsId : 1 });
 
-        settings.IgnoredFolders = (await connection.QueryAsync<IgnoredFolder>(
+        settings.IgnoredFolders = (await _context.Connection.QueryAsync<IgnoredFolder>(
             @"SELECT
                 Path
             FROM
@@ -74,11 +74,11 @@ public class SettingsRepository : ISettingsRepository
     }
 
     /// <inheritdoc />
-    public async Task SaveSettingsAsync(IDbConnection connection, Settings settings)
+    public async Task SaveSettingsAsync(Settings settings)
     {
-        using var transaction = connection.BeginTransaction();
+        using var transaction = _context.Connection.BeginTransaction();
 
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"UPDATE Settings SET
                 RootPath = @RootPath,
                 MirrorPath = @MirrorPath
@@ -86,11 +86,11 @@ public class SettingsRepository : ISettingsRepository
                 SettingsId = @SettingsId",
             settings);
 
-        await connection.ExecuteAsync("DELETE FROM IgnoredFolders WHERE SettingsId = @SettingsId;", settings);
+        await _context.Connection.ExecuteAsync("DELETE FROM IgnoredFolders WHERE SettingsId = @SettingsId;", settings);
 
         foreach (var ignoredDirectory in settings.IgnoredFolders)
         {
-            await connection.ExecuteAsync(
+            await _context.Connection.ExecuteAsync(
                 @"INSERT INTO IgnoredFolders(
                     SettingsId,
                     Path
@@ -106,11 +106,11 @@ public class SettingsRepository : ISettingsRepository
     }
 
     /// <inheritdoc />
-    public async Task<Settings> CreateCopyForScan(IDbConnection connection)
+    public async Task<Settings> CreateCopyForScan()
     {
-        var settings = await GetSettingsAsync(connection, null);
+        var settings = await GetSettingsAsync(null);
 
-        settings.SettingsId = await connection.QuerySingleAsync<int>(
+        settings.SettingsId = await _context.Connection.QuerySingleAsync<int>(
             @"INSERT INTO Settings(
                 RootPath,
                 MirrorPath
@@ -124,7 +124,7 @@ public class SettingsRepository : ISettingsRepository
 
         foreach (var ignoredDirectory in settings.IgnoredFolders)
         {
-            await connection.ExecuteAsync(
+            await _context.Connection.ExecuteAsync(
                 @"INSERT INTO IgnoredFolders(
                     SettingsId,
                     Path

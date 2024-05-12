@@ -51,7 +51,7 @@ public class Scan : IScan
         _scan.StartDate = startDate;
         _scan.FinishedDate = finishedDate;
 
-        await _scanRepository.SaveScanAsync(connection, _scan);
+        await _scanRepository.SaveScanAsync(_scan);
 
         transaction.Commit();
 
@@ -71,7 +71,7 @@ public class Scan : IScan
         _scan.FolderScanStartDate = startDate;
         _scan.FolderScanFinishedDate = finishedDate;
 
-        await _scanRepository.SaveScanAsync(connection, _scan);
+        await _scanRepository.SaveScanAsync(_scan);
 
         transaction.Commit();
 
@@ -93,7 +93,7 @@ public class Scan : IScan
         _scan.FileScanStartDate = startDate;
         _scan.FileScanFinishedDate = finishedDate;
 
-        await _scanRepository.SaveScanAsync(connection, _scan);
+        await _scanRepository.SaveScanAsync(_scan);
 
         transaction.Commit();
 
@@ -113,7 +113,7 @@ public class Scan : IScan
         _scan.DuplicateFileAnalysisStartDate = startDate;
         _scan.DuplicateFileAnalysisFinishedDate = finishedDate;
 
-        await _scanRepository.SaveScanAsync(connection, _scan);
+        await _scanRepository.SaveScanAsync(_scan);
 
         transaction.Commit();
 
@@ -133,7 +133,7 @@ public class Scan : IScan
         _scan.OrphanedFileEnumerationStartDate = startDate;
         _scan.OrphanedFileEnumerationFinishedDate = finishedDate;
 
-        await _scanRepository.SaveScanAsync(connection, _scan);
+        await _scanRepository.SaveScanAsync(_scan);
 
         transaction.Commit();
 

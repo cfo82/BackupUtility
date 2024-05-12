@@ -47,7 +47,7 @@ public class SettingsRepositoryTest
         var sut = new SettingsRepository(_dbContext);
 
         // Act
-        var settings = await sut.GetSettingsAsync(_dbContext.Connection, null);
+        var settings = await sut.GetSettingsAsync(null);
 
         // Assert
         Assert.AreEqual(settings.SettingsId, 1);
@@ -79,8 +79,8 @@ public class SettingsRepositoryTest
         };
 
         // Act
-        await sut.SaveSettingsAsync(_dbContext.Connection, settings);
-        var settingsRead = await sut.GetSettingsAsync(_dbContext.Connection, null);
+        await sut.SaveSettingsAsync(settings);
+        var settingsRead = await sut.GetSettingsAsync(null);
 
         // Assert
         Assert.AreEqual(1, settingsRead.SettingsId);

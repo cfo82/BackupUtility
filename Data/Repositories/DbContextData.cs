@@ -72,12 +72,12 @@ public class DbContextData : IDbContextData
             {
                 using var transaction = _connection.BeginTransaction();
 
-                await ScanRepository.InitAsync(Connection, version);
-                await SettingsRepository.InitAsync(Connection, version);
-                await FolderRepository.InitAsync(Connection, version);
-                await FileRepository.InitAsync(Connection, version);
-                await BitRotRepository.InitAsync(Connection, version);
-                await OrphanedFileRepository.InitAsync(Connection, version);
+                await ScanRepository.InitAsync(version);
+                await SettingsRepository.InitAsync(version);
+                await FolderRepository.InitAsync(version);
+                await FileRepository.InitAsync(version);
+                await BitRotRepository.InitAsync(version);
+                await OrphanedFileRepository.InitAsync(version);
 
                 await Connection.ExecuteAsync($"PRAGMA schema_version = {version + 1};");
 

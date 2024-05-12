@@ -11,34 +11,29 @@ public interface IOrphanedFileRepository : IRepository
     /// <summary>
     /// Delete all orphaned files from the repository.
     /// </summary>
-    /// <param name="connection">The connection to the database.</param>
     /// <returns>A task for async processing.</returns>
-    Task DeleteAllAsync(IDbConnection connection);
+    Task DeleteAllAsync();
 
     /// <summary>
     /// Save the orphaned file inside the repository.
     /// </summary>
-    /// /// <param name="connection">The connection to the database.</param>
     /// <param name="orphanedFile">The orphaned file to save.</param>
     /// <returns>A task for async processing.</returns>
-    Task SaveOrphanedFileAsync(IDbConnection connection, OrphanedFile orphanedFile);
+    Task SaveOrphanedFileAsync(OrphanedFile orphanedFile);
 
     /// <summary>
     /// Enumerate all orphaned files within the database.
     /// </summary>
-    /// <param name="connection">The connection to the database.</param>
     /// <returns>The list of all discovered orphaned files.</returns>
-    Task<IEnumerable<OrphanedFile>> EnumerateAllOrphanedFiles(IDbConnection connection);
+    Task<IEnumerable<OrphanedFile>> EnumerateAllOrphanedFiles();
 
     /// <summary>
     /// List all files from the given folder.
     /// </summary>
-    /// <param name="connection">The connection to the database.</param>
     /// <param name="parent">The parent folder.</param>
     /// <param name="loadWorkingCopies">Load the files from the working drive.</param>
     /// <returns>A list of files.</returns>
     Task<IEnumerable<OrphanedFile>> EnumerateOrphanedFilesByFolderAsync(
-        IDbConnection connection,
         Folder parent,
         bool loadWorkingCopies);
 }

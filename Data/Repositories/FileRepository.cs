@@ -23,13 +23,13 @@ public class FileRepository : IFileRepository
     }
 
     /// <inheritdoc />
-    public async Task InitAsync(IDbConnection connection, int version)
+    public async Task InitAsync(int version)
     {
         switch (version)
         {
         case 0:
             {
-                await connection.ExecuteAsync(
+                await _context.Connection.ExecuteAsync(
                     @"CREATE TABLE Files(
                             ParentId INTEGER NOT NULL,
                             Name TEXT NOT NULL,
@@ -41,19 +41,19 @@ public class FileRepository : IFileRepository
                             PRIMARY KEY (ParentId, Name)
                             FOREIGN KEY(ParentId) REFERENCES Folders(Id) ON DELETE CASCADE ON UPDATE NO ACTION
                         );");
-                await connection.ExecuteAsync(@"CREATE INDEX Files_IntroHash ON Files(IntroHash);");
-                await connection.ExecuteAsync(@"CREATE INDEX Files_Hash ON Files(Hash);");
-                await connection.ExecuteAsync(@"CREATE INDEX Files_ParentId ON Files(ParentId);");
+                await _context.Connection.ExecuteAsync(@"CREATE INDEX Files_IntroHash ON Files(IntroHash);");
+                await _context.Connection.ExecuteAsync(@"CREATE INDEX Files_Hash ON Files(Hash);");
+                await _context.Connection.ExecuteAsync(@"CREATE INDEX Files_ParentId ON Files(ParentId);");
                 break;
             }
         }
     }
 
     /// <inheritdoc />
-    public async Task<File?> FindFileByNameAsync(IDbConnection connection, Folder parent, string name)
+    public async Task<File?> FindFileByNameAsync(Folder parent, string name)
     {
         long parentId = parent.Id;
-        var result = await connection.QuerySingleOrDefaultAsync<File>(
+        var result = await _context.Connection.QuerySingleOrDefaultAsync<File>(
             @"SELECT
                 ParentId,
                 Name,
@@ -73,10 +73,10 @@ public class FileRepository : IFileRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<File>> EnumerateFilesByFolderAsync(IDbConnection connection, Folder parent)
+    public async Task<IEnumerable<File>> EnumerateFilesByFolderAsync(Folder parent)
     {
         long parentId = parent.Id;
-        var result = await connection.QueryAsync<File>(
+        var result = await _context.Connection.QueryAsync<File>(
             @"SELECT
                 ParentId,
                 Name,
@@ -95,9 +95,9 @@ public class FileRepository : IFileRepository
     }
 
     /// <inheritdoc />
-    public async Task SaveFileAsync(IDbConnection connection, File file)
+    public async Task SaveFileAsync(File file)
     {
-        var exists = await connection.ExecuteScalarAsync<bool>(
+        var exists = await _context.Connection.ExecuteScalarAsync<bool>(
             @"SELECT 1 WHERE EXISTS(
                 SELECT 1 FROM
                     Files
@@ -107,7 +107,7 @@ public class FileRepository : IFileRepository
             file);
         if (exists)
         {
-            await connection.ExecuteAsync(
+            await _context.Connection.ExecuteAsync(
                 @"UPDATE FILES SET
                     IntroHash = @IntroHash,
                     Hash = @Hash,
@@ -121,7 +121,7 @@ public class FileRepository : IFileRepository
         }
         else
         {
-            await connection.ExecuteAsync(
+            await _context.Connection.ExecuteAsync(
                 @"INSERT INTO Files(
                     ParentId,
                     Name,
@@ -144,17 +144,17 @@ public class FileRepository : IFileRepository
     }
 
     /// <inheritdoc />
-    public async Task MarkAllFilesAsUntouchedAsync(IDbConnection connection)
+    public async Task MarkAllFilesAsUntouchedAsync()
     {
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"UPDATE Files SET
                 Touched = 0;");
     }
 
     /// <inheritdoc />
-    public async Task TouchFileAsync(IDbConnection connection, File file)
+    public async Task TouchFileAsync(File file)
     {
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"UPDATE Files SET
                 Touched = 1
             WHERE
@@ -165,9 +165,9 @@ public class FileRepository : IFileRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<DuplicateFiles>> FindDuplicateFilesAsync(IDbConnection connection)
+    public async Task<IEnumerable<DuplicateFiles>> FindDuplicateFilesAsync()
     {
-        var duplicates = await connection.QueryAsync<File>(
+        var duplicates = await _context.Connection.QueryAsync<File>(
                 @"SELECT
 	                a.ParentId,
 	                a.Name,
@@ -198,9 +198,9 @@ public class FileRepository : IFileRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<string>> FindHashesOfDuplicateFilesAsync(IDbConnection connection)
+    public async Task<IEnumerable<string>> FindHashesOfDuplicateFilesAsync()
     {
-        return await connection.QueryAsync<string>(
+        return await _context.Connection.QueryAsync<string>(
             @"SELECT
                 Hash
             FROM
@@ -212,24 +212,24 @@ public class FileRepository : IFileRepository
     }
 
     /// <inheritdoc />
-    public async Task DeleteAllAsync(IDbConnection connection)
+    public async Task DeleteAllAsync()
     {
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"DELETE FROM Files;");
     }
 
     /// <inheritdoc />
-    public async Task RemoveAllDuplicateMarks(IDbConnection connection)
+    public async Task RemoveAllDuplicateMarks()
     {
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"UPDATE Files SET
                 IsDuplicate = 0;");
     }
 
     /// <inheritdoc />
-    public async Task MarkFileAsDuplicate(IDbConnection connection, File file)
+    public async Task MarkFileAsDuplicate(File file)
     {
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"UPDATE Files SET
                 IsDuplicate = 1
             WHERE
@@ -240,9 +240,9 @@ public class FileRepository : IFileRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<File>> EnumerateDuplicateFiles(IDbConnection connection)
+    public async Task<IEnumerable<File>> EnumerateDuplicateFiles()
     {
-        return await connection.QueryAsync<File>(
+        return await _context.Connection.QueryAsync<File>(
             @"SELECT
                 ParentId,
                 Name,
@@ -258,14 +258,14 @@ public class FileRepository : IFileRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<File>> EnumerateDuplicatesOfFile(IDbConnection connection, BaseFile file)
+    public async Task<IEnumerable<File>> EnumerateDuplicatesOfFile(BaseFile file)
     {
         if (string.Equals(file.Hash, _emptyFileHash))
         {
             return Enumerable.Empty<File>();
         }
 
-        return await connection.QueryAsync<File>(
+        return await _context.Connection.QueryAsync<File>(
             @"SELECT
                 ParentId,
                 Name,
@@ -283,14 +283,14 @@ public class FileRepository : IFileRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<File>> EnumerateDuplicatesWithHash(IDbConnection connection, string hash)
+    public async Task<IEnumerable<File>> EnumerateDuplicatesWithHash(string hash)
     {
         if (string.Equals(hash, _emptyFileHash))
         {
             return Enumerable.Empty<File>();
         }
 
-        return await connection.QueryAsync<File>(
+        return await _context.Connection.QueryAsync<File>(
             @"SELECT
                 ParentId,
                 Name,

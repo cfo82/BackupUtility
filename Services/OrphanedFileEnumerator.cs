@@ -67,12 +67,12 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
 
                         await currentScan.UpdateOrphanedFilesScanDataAsync(connection, false, DateTime.Now, null);
 
-                        var settings = await settingsRepository.GetSettingsAsync(connection, null);
+                        var settings = await settingsRepository.GetSettingsAsync(null);
 
                         using (var transaction = connection.BeginTransaction())
                         {
                             await _scanStatus.UpdateAsync("Enumerate orphaned files...", null);
-                            await orphanedFilesRepository.DeleteAllAsync(connection);
+                            await orphanedFilesRepository.DeleteAllAsync();
                             await EnumerateOrphanedFilesRecursiveAsync(connection, folderRepository, orphanedFilesRepository, settings.MirrorPath, settings.RootPath, settings);
                             transaction.Commit();
                         }
@@ -80,18 +80,18 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
                         using (var transaction = connection.BeginTransaction())
                         {
                             await _scanStatus.UpdateAsync("Remove duplication marks from folders...", null);
-                            await folderRepository.RemoveAllDuplicateMarks(connection, DriveType.Mirror);
+                            await folderRepository.RemoveAllDuplicateMarks(DriveType.Mirror);
                             transaction.Commit();
                         }
 
                         using (var transaction = connection.BeginTransaction())
                         {
                             await _scanStatus.UpdateAsync("Scan for entire folders still residing on working drive...", null);
-                            var folderCount = await folderRepository.GetFolderCount(connection, DriveType.Mirror);
-                            var rootFolders = await folderRepository.GetRootFolders(connection, DriveType.Mirror);
+                            var folderCount = await folderRepository.GetFolderCount(DriveType.Mirror);
+                            var rootFolders = await folderRepository.GetRootFolders(DriveType.Mirror);
                             foreach (var rootFolder in rootFolders)
                             {
-                                await RunDuplicateFolderAnalysisRecursiveAsync(folderRepository, orphanedFilesRepository, connection, rootFolder, folderCount, new FolderCounter { Index = 0 });
+                                await RunDuplicateFolderAnalysisRecursiveAsync(folderRepository, orphanedFilesRepository, rootFolder, folderCount, new FolderCounter { Index = 0 });
                             }
 
                             transaction.Commit();
@@ -149,7 +149,6 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
             foreach (var file in files)
             {
                 await CheckFileAsync(
-                    connection,
                     folderRepository,
                     orphanedFilesRepository,
                     file,
@@ -159,7 +158,6 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
     }
 
     private async Task CheckFileAsync(
-        IDbConnection connection,
         IFolderRepository folderRepository,
         IOrphanedFileRepository orphanedFilesRepository,
         string mirrorFilePath,
@@ -184,12 +182,10 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
             }
 
             var folder = await folderRepository.SaveFullPathAsync(
-                connection,
                 directoryName,
                 Data.Interfaces.DriveType.Mirror);
 
             await orphanedFilesRepository.SaveOrphanedFileAsync(
-                connection,
                 new OrphanedFile()
                 {
                     ParentId = folder.Id,
@@ -212,7 +208,6 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
     private async Task RunDuplicateFolderAnalysisRecursiveAsync(
         IFolderRepository folderRepository,
         IOrphanedFileRepository orphanedFileRepository,
-        IDbConnection connection,
         Folder folder,
         long folderCount,
         FolderCounter folderCounter)
@@ -221,21 +216,20 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
         ++folderCounter.Index;
         await _scanStatus.UpdateAsync(percentage);
 
-        var subFolders = await folderRepository.GetSubFoldersAsync(connection, folder);
+        var subFolders = await folderRepository.GetSubFoldersAsync(folder);
         foreach (var subFolder in subFolders)
         {
-            await RunDuplicateFolderAnalysisRecursiveAsync(folderRepository, orphanedFileRepository, connection, subFolder, folderCount, folderCounter);
+            await RunDuplicateFolderAnalysisRecursiveAsync(folderRepository, orphanedFileRepository, subFolder, folderCount, folderCounter);
         }
 
-        var files = await orphanedFileRepository.EnumerateOrphanedFilesByFolderAsync(connection, folder, false);
+        var files = await orphanedFileRepository.EnumerateOrphanedFilesByFolderAsync(folder, false);
 
-        await CalculateAndSaveDuplicationLevel(connection, folderRepository, folder, subFolders, files);
+        await CalculateAndSaveDuplicationLevel(folderRepository, folder, subFolders, files);
 
-        await CalculateAndSaveFolderHashAsync(connection, folderRepository, folder, subFolders, files);
+        await CalculateAndSaveFolderHashAsync(folderRepository, folder, subFolders, files);
     }
 
     private async Task CalculateAndSaveDuplicationLevel(
-        IDbConnection connection,
         IFolderRepository folderRepository,
         Folder folder,
         IEnumerable<Folder> subFolders,
@@ -258,11 +252,10 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
             duplicationLevel = FolderDuplicationLevel.EntireContentAreDuplicates;
         }
 
-        await folderRepository.MarkFolderAsDuplicate(connection, folder, duplicationLevel);
+        await folderRepository.MarkFolderAsDuplicate(folder, duplicationLevel);
     }
 
     private async Task CalculateAndSaveFolderHashAsync(
-        IDbConnection connection,
         IFolderRepository folderRepository,
         Folder folder,
         IEnumerable<Folder> subFolders,
@@ -299,13 +292,13 @@ public class OrphanedFileEnumerator : IOrphanedFileEnumerator
         var folderChecksum = folderHash.ComputeHash(hashContent.ToArray());
         var hash = BitConverter.ToString(folderChecksum).Replace("-", string.Empty).ToLower();
 
-        await folderRepository.SaveFolderHashAsync(connection, folder, hash);
+        await folderRepository.SaveFolderHashAsync(folder, hash);
 
-        var copiesOnWorkingDrive = await folderRepository.EnumerateDuplicatesOfFolder(connection, folder, DriveType.Working);
+        var copiesOnWorkingDrive = await folderRepository.EnumerateDuplicatesOfFolder(folder, DriveType.Working);
 
         if (copiesOnWorkingDrive.Any())
         {
-            await folderRepository.MarkFolderAsDuplicate(connection, folder, FolderDuplicationLevel.HashIdenticalToOtherFolder);
+            await folderRepository.MarkFolderAsDuplicate(folder, FolderDuplicationLevel.HashIdenticalToOtherFolder);
         }
     }
 

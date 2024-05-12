@@ -71,7 +71,6 @@ public class FolderContentViewModel : BindableBase
                 return;
             }
 
-            var connection = _projectManager.CurrentProject.Data.Connection;
             var fileRepository = _projectManager.CurrentProject.Data.FileRepository;
 
             Files.Clear();
@@ -79,7 +78,7 @@ public class FolderContentViewModel : BindableBase
             var selectedFolder = _selectedFolderService.SelectedFolder;
             if (selectedFolder != null)
             {
-                var files = await fileRepository.EnumerateFilesByFolderAsync(connection, selectedFolder);
+                var files = await fileRepository.EnumerateFilesByFolderAsync(selectedFolder);
                 Files.AddRange(files.Select(f => new FileViewModel(f)));
             }
 

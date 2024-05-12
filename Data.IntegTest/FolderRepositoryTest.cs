@@ -44,10 +44,10 @@ public class FolderRepositoryTest
         // Arrange
         Assert.IsNotNull(_dbContext);
         var sut = _dbContext.FolderRepository;
-        await sut.SaveFullPathAsync(_dbContext.Connection, @"D:\Test\Child", DriveType.Working);
+        await sut.SaveFullPathAsync(@"D:\Test\Child", DriveType.Working);
 
         // Act
-        var result = await sut.GetFolderAsync(_dbContext.Connection, @"D:\Test\Child");
+        var result = await sut.GetFolderAsync(@"D:\Test\Child");
 
         // Assert
         Assert.IsNotNull(result);
@@ -57,7 +57,7 @@ public class FolderRepositoryTest
     }
 
     /// <summary>
-    /// This path verifies that the method <see cref="IFolderRepository.GetFullPathForFolderAsync(System.Data.IDbConnection, Folder)"/> returnes the
+    /// This path verifies that the method <see cref="IFolderRepository.GetFullPathForFolderAsync(Folder)"/> returnes the
     /// correct absolute path for the given folder.
     /// </summary>
     /// <returns>A task for async programming.</returns>
@@ -67,12 +67,12 @@ public class FolderRepositoryTest
         // Arrange
         Assert.IsNotNull(_dbContext);
         var sut = _dbContext.FolderRepository;
-        await sut.SaveFullPathAsync(_dbContext.Connection, @"D:\Test\Child", DriveType.Working);
-        var leaf = await sut.GetFolderAsync(_dbContext.Connection, @"D:\Test\Child");
+        await sut.SaveFullPathAsync(@"D:\Test\Child", DriveType.Working);
+        var leaf = await sut.GetFolderAsync(@"D:\Test\Child");
         Assert.IsNotNull(leaf);
 
         // Act
-        var fullPath = (await sut.GetFullPathForFolderAsync(_dbContext.Connection, leaf)).ToList();
+        var fullPath = (await sut.GetFullPathForFolderAsync(leaf)).ToList();
 
         // Assert
         Assert.AreEqual(3, fullPath.Count());

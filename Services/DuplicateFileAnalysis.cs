@@ -97,10 +97,10 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
         using var transaction = connection.BeginTransaction();
 
         await _scanStatus.UpdateAsync("Remove duplication marks from files...", null);
-        await fileRepository.RemoveAllDuplicateMarks(connection);
+        await fileRepository.RemoveAllDuplicateMarks();
 
         await _scanStatus.UpdateAsync("Remove duplication marks from folders...", null);
-        await folderRepository.RemoveAllDuplicateMarks(connection, DriveType.Working);
+        await folderRepository.RemoveAllDuplicateMarks(DriveType.Working);
 
         transaction.Commit();
     }
@@ -112,19 +112,18 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
     {
         using var transaction = connection.BeginTransaction();
 
-        var folderCount = await folderRepository.GetFolderCount(connection, DriveType.Working);
-        var rootFolders = await folderRepository.GetRootFolders(connection, DriveType.Working);
-        var hashesOfDuplicateFiles = (await fileRepository.FindHashesOfDuplicateFilesAsync(connection)).ToImmutableHashSet();
+        var folderCount = await folderRepository.GetFolderCount(DriveType.Working);
+        var rootFolders = await folderRepository.GetRootFolders(DriveType.Working);
+        var hashesOfDuplicateFiles = (await fileRepository.FindHashesOfDuplicateFilesAsync()).ToImmutableHashSet();
         foreach (var folder in rootFolders)
         {
-            await ProcessTreeRecursiveAsync(connection, folderRepository, fileRepository, hashesOfDuplicateFiles, folder, folderCount, new FolderCounter { Index = 0 });
+            await ProcessTreeRecursiveAsync(folderRepository, fileRepository, hashesOfDuplicateFiles, folder, folderCount, new FolderCounter { Index = 0 });
         }
 
         transaction.Commit();
     }
 
     private async Task ProcessTreeRecursiveAsync(
-        IDbConnection connection,
         IFolderRepository folderRepository,
         IFileRepository fileRepository,
         ImmutableHashSet<string> hashesOfDuplicateFiles,
@@ -138,28 +137,27 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
         await _scanStatus.UpdateAsync(status, percentage);
         _logger.LogInformation(status);
 
-        var subFolders = await folderRepository.GetSubFoldersAsync(connection, folder);
+        var subFolders = await folderRepository.GetSubFoldersAsync(folder);
         foreach (var subFolder in subFolders)
         {
-            await ProcessTreeRecursiveAsync(connection, folderRepository, fileRepository, hashesOfDuplicateFiles, subFolder, folderCount, folderCounter);
+            await ProcessTreeRecursiveAsync(folderRepository, fileRepository, hashesOfDuplicateFiles, subFolder, folderCount, folderCounter);
         }
 
-        var files = await fileRepository.EnumerateFilesByFolderAsync(connection, folder);
+        var files = await fileRepository.EnumerateFilesByFolderAsync(folder);
         foreach (var file in files)
         {
             if (hashesOfDuplicateFiles.Contains(file.Hash))
             {
-                await fileRepository.MarkFileAsDuplicate(connection, file);
+                await fileRepository.MarkFileAsDuplicate(file);
             }
         }
 
-        await CalculateAndSaveDuplicationLevel(connection, folderRepository, folder, subFolders, files);
+        await CalculateAndSaveDuplicationLevel(folderRepository, folder, subFolders, files);
 
-        await CalculateAndSaveFolderHashAsync(connection, folderRepository, folder, subFolders, files);
+        await CalculateAndSaveFolderHashAsync(folderRepository, folder, subFolders, files);
     }
 
     private async Task CalculateAndSaveDuplicationLevel(
-        IDbConnection connection,
         IFolderRepository folderRepository,
         Folder folder,
         IEnumerable<Folder> subFolders,
@@ -182,11 +180,10 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
             duplicationLevel = FolderDuplicationLevel.EntireContentAreDuplicates;
         }
 
-        await folderRepository.MarkFolderAsDuplicate(connection, folder, duplicationLevel);
+        await folderRepository.MarkFolderAsDuplicate(folder, duplicationLevel);
     }
 
     private async Task CalculateAndSaveFolderHashAsync(
-        IDbConnection connection,
         IFolderRepository folderRepository,
         Folder folder,
         IEnumerable<Folder> subFolders,
@@ -223,18 +220,18 @@ public class DuplicateFileAnalysis : IDuplicateFileAnalysis
         var folderChecksum = folderHash.ComputeHash(hashContent.ToArray());
         var hash = BitConverter.ToString(folderChecksum).Replace("-", string.Empty).ToLower();
 
-        await folderRepository.SaveFolderHashAsync(connection, folder, hash);
+        await folderRepository.SaveFolderHashAsync(folder, hash);
     }
 
     private async Task ProcessDuplicateFoldersAsync(IDbConnection connection, IFolderRepository folderRepository)
     {
         using var transaction = connection.BeginTransaction();
 
-        var foldersWithDuplicates = await folderRepository.FindDuplicateFoldersAsync(connection, DriveType.Working);
+        var foldersWithDuplicates = await folderRepository.FindDuplicateFoldersAsync(DriveType.Working);
 
         foreach (var folder in foldersWithDuplicates)
         {
-            await folderRepository.MarkFolderAsDuplicate(connection, folder, FolderDuplicationLevel.HashIdenticalToOtherFolder);
+            await folderRepository.MarkFolderAsDuplicate(folder, FolderDuplicationLevel.HashIdenticalToOtherFolder);
         }
 
         transaction.Commit();

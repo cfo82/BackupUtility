@@ -115,15 +115,14 @@ public class FolderDetailsViewModelBase : BindableBase
 
         if (_selectedFolder != null)
         {
-            var connection = _projectManager.CurrentProject.Data.Connection;
             var folderRepository = _projectManager.CurrentProject.Data.FolderRepository;
 
-            var fullPath = await folderRepository.GetFullPathForFolderAsync(connection, _selectedFolder);
+            var fullPath = await folderRepository.GetFullPathForFolderAsync(_selectedFolder);
             Path = System.IO.Path.Join(fullPath.Select(f => f.Name).ToArray());
 
-            foreach (var duplicate in await folderRepository.EnumerateDuplicatesOfFolder(connection, _selectedFolder, DriveType.Working))
+            foreach (var duplicate in await folderRepository.EnumerateDuplicatesOfFolder(_selectedFolder, DriveType.Working))
             {
-                fullPath = await folderRepository.GetFullPathForFolderAsync(connection, duplicate);
+                fullPath = await folderRepository.GetFullPathForFolderAsync(duplicate);
                 Duplicates.Add(new DuplicateFolderViewModel(System.IO.Path.Join(fullPath.Select(f => f.Name).ToArray())));
             }
         }

@@ -68,19 +68,18 @@ public class FileDetailsViewModelBase : BindableBase
 
         if (_selectedFile != null)
         {
-            var connection = _projectManager.CurrentProject.Data.Connection;
             var fileRepository = _projectManager.CurrentProject.Data.FileRepository;
             var folderRepository = _projectManager.CurrentProject.Data.FolderRepository;
 
-            foreach (var duplicate in await fileRepository.EnumerateDuplicatesOfFile(connection, _selectedFile))
+            foreach (var duplicate in await fileRepository.EnumerateDuplicatesOfFile(_selectedFile))
             {
-                var folder = await folderRepository.GetFolderAsync(connection, duplicate.ParentId);
+                var folder = await folderRepository.GetFolderAsync(duplicate.ParentId);
                 if (folder == null)
                 {
                     throw new InvalidOperationException("Unexpected error: folder is null.");
                 }
 
-                var fullPath = await folderRepository.GetFullPathForFolderAsync(connection, folder);
+                var fullPath = await folderRepository.GetFullPathForFolderAsync(folder);
                 Duplicates.Add(new DuplicateFileViewModel(
                     System.IO.Path.Join(fullPath.Select(f => f.Name).ToArray()),
                     duplicate.Name));

@@ -64,28 +64,28 @@ public class FolderEnumerator : IFolderEnumerator
 
                         await currentScan.UpdateFolderScanDataAsync(connection, false, DateTime.Now, null);
 
-                        var settings = await settingsRepository.GetSettingsAsync(connection, null);
+                        var settings = await settingsRepository.GetSettingsAsync(null);
 
                         using (var transaction = connection.BeginTransaction())
                         {
-                            await folderRepository.MarkAllFoldersAsUntouchedAsync(connection);
+                            await folderRepository.MarkAllFoldersAsUntouchedAsync();
                             transaction.Commit();
                         }
 
                         using (var transaction = connection.BeginTransaction())
                         {
                             var rootPath = settings.RootPath;
-                            var rootFolder = await folderRepository.SaveFullPathAsync(connection, rootPath, DriveType.Working);
+                            var rootFolder = await folderRepository.SaveFullPathAsync(rootPath, DriveType.Working);
 
-                            var fullPath = await folderRepository.GetFullPathForFolderAsync(connection, rootFolder);
+                            var fullPath = await folderRepository.GetFullPathForFolderAsync(rootFolder);
                             foreach (var folder in fullPath)
                             {
-                                await folderRepository.TouchFolderAsync(connection, folder);
+                                await folderRepository.TouchFolderAsync(folder);
                             }
 
                             foreach (var subDirectory in Directory.GetDirectories(rootPath))
                             {
-                                await EnumerateFoldersRecursiveAsync(connection, folderRepository, rootFolder, subDirectory, settings);
+                                await EnumerateFoldersRecursiveAsync(folderRepository, rootFolder, subDirectory, settings);
                             }
 
                             transaction.Commit();
@@ -111,7 +111,6 @@ public class FolderEnumerator : IFolderEnumerator
     }
 
     private async Task EnumerateFoldersRecursiveAsync(
-        IDbConnection connection,
         IFolderRepository folderRepository,
         Folder parentFolder,
         string path,
@@ -127,10 +126,10 @@ public class FolderEnumerator : IFolderEnumerator
         await _scanStatus.UpdateAsync(status, null);
 
         var folderName = Path.GetFileName(path);
-        var currentFolder = await folderRepository.GetFolderAsync(connection, parentFolder.Id, folderName);
+        var currentFolder = await folderRepository.GetFolderAsync(parentFolder.Id, folderName);
         if (currentFolder != null)
         {
-            await folderRepository.TouchFolderAsync(connection, currentFolder);
+            await folderRepository.TouchFolderAsync(currentFolder);
         }
         else
         {
@@ -141,12 +140,12 @@ public class FolderEnumerator : IFolderEnumerator
                 Name = folderName,
                 Touched = 1,
             };
-            await folderRepository.SaveFolderAsync(connection, currentFolder);
+            await folderRepository.SaveFolderAsync(currentFolder);
         }
 
         foreach (var subDirectory in Directory.GetDirectories(path))
         {
-            await EnumerateFoldersRecursiveAsync(connection, folderRepository, currentFolder, subDirectory, settings);
+            await EnumerateFoldersRecursiveAsync(folderRepository, currentFolder, subDirectory, settings);
         }
     }
 }

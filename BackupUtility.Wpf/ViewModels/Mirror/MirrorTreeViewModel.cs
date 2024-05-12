@@ -74,14 +74,13 @@ public class MirrorTreeViewModel : BindableBase
                 return;
             }
 
-            var connection = _currentProject.Data.Connection;
             var folderRepository = _currentProject.Data.FolderRepository;
 
             TopLevelItems.Clear();
-            var rootFolder = await folderRepository.GetRootFolders(connection, DriveType.Mirror);
+            var rootFolder = await folderRepository.GetRootFolders(DriveType.Mirror);
             foreach (var folder in rootFolder)
             {
-                await InsertNodeAsync(folderRepository, connection, null, folder);
+                await InsertNodeAsync(folderRepository, null, folder);
             }
         }
         catch (Exception ex)
@@ -92,16 +91,15 @@ public class MirrorTreeViewModel : BindableBase
 
     private async Task InsertNodeAsync(
         IFolderRepository folderRepository,
-        IDbConnection connection,
         MirrorTreeViewItemViewModel? parent,
         Folder folder)
     {
         var node = new MirrorTreeViewItemViewModel(_selectedFolderService, folder);
 
-        var subFolders = await folderRepository.GetSubFoldersAsync(connection, folder);
+        var subFolders = await folderRepository.GetSubFoldersAsync(folder);
         foreach (var subFolder in subFolders)
         {
-            await InsertNodeAsync(folderRepository, connection, node, subFolder);
+            await InsertNodeAsync(folderRepository, node, subFolder);
         }
 
         if (parent != null)

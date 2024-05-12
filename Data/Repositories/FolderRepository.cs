@@ -22,13 +22,13 @@ public class FolderRepository : IFolderRepository
     }
 
     /// <inheritdoc />
-    public async Task InitAsync(IDbConnection connection, int version)
+    public async Task InitAsync(int version)
     {
         switch (version)
         {
         case 0:
             {
-                await connection.ExecuteAsync(
+                await _context.Connection.ExecuteAsync(
                     @"CREATE TABLE Folders(
                             Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                             ParentId INTEGER,
@@ -39,16 +39,16 @@ public class FolderRepository : IFolderRepository
                             IsDuplicate INTEGER NOT NULL DEFAULT 0,
                             FOREIGN KEY(ParentId) REFERENCES Folders(Id) ON DELETE CASCADE ON UPDATE NO ACTION
                         );");
-                await connection.ExecuteAsync(@"CREATE INDEX Folders_ParentId ON Folders(ParentId);");
+                await _context.Connection.ExecuteAsync(@"CREATE INDEX Folders_ParentId ON Folders(ParentId);");
                 break;
             }
         }
     }
 
     /// <inheritdoc />
-    public async Task SaveFolderAsync(IDbConnection connection, Folder folder)
+    public async Task SaveFolderAsync(Folder folder)
     {
-        folder.Id = await connection.QuerySingleAsync<long>(
+        folder.Id = await _context.Connection.QuerySingleAsync<long>(
             @"INSERT INTO Folders(
                 ParentId,
                 Name,
@@ -71,7 +71,6 @@ public class FolderRepository : IFolderRepository
 
     /// <inheritdoc />
     public async Task<Folder> SaveFullPathAsync(
-        IDbConnection connection,
         string path,
         DriveType driveType)
     {
@@ -80,7 +79,7 @@ public class FolderRepository : IFolderRepository
             throw new ArgumentException($"The path '{path}' must be rooted.", nameof(path));
         }
 
-        var existingFolder = await GetFolderAsync(connection, path);
+        var existingFolder = await GetFolderAsync(path);
         if (existingFolder != null)
         {
             return existingFolder;
@@ -96,7 +95,7 @@ public class FolderRepository : IFolderRepository
                 Name = path,
                 DriveType = driveType,
             };
-            await SaveFolderAsync(connection, folder);
+            await SaveFolderAsync(folder);
             return folder;
         }
         else
@@ -107,7 +106,7 @@ public class FolderRepository : IFolderRepository
                 throw new InvalidOperationException($"Unable to evaluate parent folder name for '{path}'.");
             }
 
-            var parentFolder = await SaveFullPathAsync(connection, parentName, driveType);
+            var parentFolder = await SaveFullPathAsync(parentName, driveType);
             if (parentFolder == null)
             {
                 throw new InvalidOperationException($"Unable to save parent folder '{path}'.");
@@ -120,23 +119,23 @@ public class FolderRepository : IFolderRepository
                 Name = Path.GetFileName(path),
                 DriveType = driveType,
             };
-            await SaveFolderAsync(connection, folder);
+            await SaveFolderAsync(folder);
             return folder;
         }
     }
 
     /// <inheritdoc />
-    public async Task MarkAllFoldersAsUntouchedAsync(IDbConnection connection)
+    public async Task MarkAllFoldersAsUntouchedAsync()
     {
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"UPDATE Folders SET
                 Touched = 0;");
     }
 
     /// <inheritdoc />
-    public async Task<long> GetFolderCount(IDbConnection connection, DriveType driveType)
+    public async Task<long> GetFolderCount(DriveType driveType)
     {
-        return await connection.QuerySingleAsync<long>(
+        return await _context.Connection.QuerySingleAsync<long>(
             @"SELECT
                 count(*)
             FROM
@@ -147,9 +146,9 @@ public class FolderRepository : IFolderRepository
     }
 
     /// <inheritdoc />
-    public async Task TouchFolderAsync(IDbConnection connection, Folder folder)
+    public async Task TouchFolderAsync(Folder folder)
     {
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"UPDATE Folders SET
                 Touched = 1
             WHERE
@@ -159,9 +158,9 @@ public class FolderRepository : IFolderRepository
     }
 
     /// <inheritdoc />
-    public async Task<Folder?> GetFolderAsync(IDbConnection connection, long folderId)
+    public async Task<Folder?> GetFolderAsync(long folderId)
     {
-        return await connection.QuerySingleOrDefaultAsync<Folder>(
+        return await _context.Connection.QuerySingleOrDefaultAsync<Folder>(
             @"SELECT
                     Id,
                     ParentId,
@@ -178,7 +177,7 @@ public class FolderRepository : IFolderRepository
     }
 
     /// <inheritdoc />
-    public async Task<Folder?> GetFolderAsync(IDbConnection connection, string path)
+    public async Task<Folder?> GetFolderAsync(string path)
     {
         if (!Path.IsPathRooted(path))
         {
@@ -188,7 +187,7 @@ public class FolderRepository : IFolderRepository
         if (Path.GetPathRoot(path) == path)
         {
             path = path.TrimEnd('\\');
-            return await connection.QuerySingleOrDefaultAsync<Folder>(
+            return await _context.Connection.QuerySingleOrDefaultAsync<Folder>(
                 @"SELECT
                     Id,
                     ParentId,
@@ -211,20 +210,20 @@ public class FolderRepository : IFolderRepository
                 throw new InvalidOperationException($"Unable to evaluate parent folder name for '{path}'.");
             }
 
-            var parentFolder = await GetFolderAsync(connection, parentName);
+            var parentFolder = await GetFolderAsync(parentName);
             if (parentFolder == null)
             {
                 return null;
             }
 
-            return await GetFolderAsync(connection, parentFolder.Id, Path.GetFileName(path));
+            return await GetFolderAsync(parentFolder.Id, Path.GetFileName(path));
         }
     }
 
     /// <inheritdoc />
-    public async Task<Folder?> GetFolderAsync(IDbConnection connection, long parentId, string name)
+    public async Task<Folder?> GetFolderAsync(long parentId, string name)
     {
-        return await connection.QuerySingleOrDefaultAsync<Folder>(
+        return await _context.Connection.QuerySingleOrDefaultAsync<Folder>(
             @"SELECT
                     Id,
                     ParentId,
@@ -242,9 +241,9 @@ public class FolderRepository : IFolderRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Folder>> GetRootFolders(IDbConnection connection, DriveType driveType)
+    public async Task<IEnumerable<Folder>> GetRootFolders(DriveType driveType)
     {
-        return await connection.QueryAsync<Folder>(
+        return await _context.Connection.QueryAsync<Folder>(
             @"SELECT
                 Id,
                 ParentId,
@@ -262,9 +261,9 @@ public class FolderRepository : IFolderRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Folder>> GetSubFoldersAsync(IDbConnection connection, Folder folder)
+    public async Task<IEnumerable<Folder>> GetSubFoldersAsync(Folder folder)
     {
-        return await connection.QueryAsync<Folder>(
+        return await _context.Connection.QueryAsync<Folder>(
             @"SELECT
                 Id,
                 ParentId,
@@ -282,15 +281,15 @@ public class FolderRepository : IFolderRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Folder>> GetFullPathForFolderAsync(IDbConnection connection, Folder folder)
+    public async Task<IEnumerable<Folder>> GetFullPathForFolderAsync(Folder folder)
     {
-        return await GetFullPathForFolderAsync(connection, folder.Id);
+        return await GetFullPathForFolderAsync(folder.Id);
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Folder>> GetFullPathForFolderAsync(IDbConnection connection, long folderId)
+    public async Task<IEnumerable<Folder>> GetFullPathForFolderAsync(long folderId)
     {
-        return await connection.QueryAsync<Folder>(
+        return await _context.Connection.QueryAsync<Folder>(
             @"WITH RECURSIVE parent_folders(n) AS (
 	            VALUES(@folderId)
 	            UNION
@@ -312,22 +311,22 @@ public class FolderRepository : IFolderRepository
     }
 
     /// <inheritdoc />
-    public async Task DeleteAllAsync(IDbConnection connection)
+    public async Task DeleteAllAsync()
     {
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"DELETE FROM Folders;");
     }
 
     /// <inheritdoc />
-    public async Task RemoveAllDuplicateMarks(IDbConnection connection, DriveType driveType)
+    public async Task RemoveAllDuplicateMarks(DriveType driveType)
     {
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"UPDATE Folders SET
                 Hash = NULL
             WHERE
                 DriveType = @driveType;",
             new { driveType });
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"UPDATE Folders SET
                 IsDuplicate = 0
             WHERE
@@ -336,10 +335,10 @@ public class FolderRepository : IFolderRepository
     }
 
     /// <inheritdoc />
-    public async Task MarkFolderAsDuplicate(IDbConnection connection, Folder folder, FolderDuplicationLevel duplicationLevel)
+    public async Task MarkFolderAsDuplicate(Folder folder, FolderDuplicationLevel duplicationLevel)
     {
         var folderId = folder.Id;
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"UPDATE Folders SET
                 IsDuplicate = @duplicationLevel
             WHERE
@@ -349,10 +348,10 @@ public class FolderRepository : IFolderRepository
     }
 
     /// <inheritdoc />
-    public async Task SaveFolderHashAsync(IDbConnection connection, Folder folder, string hash)
+    public async Task SaveFolderHashAsync(Folder folder, string hash)
     {
         var folderId = folder.Id;
-        await connection.ExecuteAsync(
+        await _context.Connection.ExecuteAsync(
             @"UPDATE Folders SET
                 Hash = @hash
             WHERE
@@ -362,9 +361,9 @@ public class FolderRepository : IFolderRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Folder>> FindDuplicateFoldersAsync(IDbConnection connection, DriveType driveType)
+    public async Task<IEnumerable<Folder>> FindDuplicateFoldersAsync(DriveType driveType)
     {
-        return await connection.QueryAsync<Folder>(
+        return await _context.Connection.QueryAsync<Folder>(
                 @"SELECT
                     a.Id,
                     a.ParentId,
@@ -391,14 +390,14 @@ public class FolderRepository : IFolderRepository
     }
 
     /// <inheritdoc />
-    public async Task<IEnumerable<Folder>> EnumerateDuplicatesOfFolder(IDbConnection connection, Folder folder, DriveType driveType)
+    public async Task<IEnumerable<Folder>> EnumerateDuplicatesOfFolder(Folder folder, DriveType driveType)
     {
         if (string.IsNullOrEmpty(folder.Hash))
         {
             return Enumerable.Empty<Folder>();
         }
 
-        return await connection.QueryAsync<Folder>(
+        return await _context.Connection.QueryAsync<Folder>(
             @"SELECT
                 Id,
                 ParentId,

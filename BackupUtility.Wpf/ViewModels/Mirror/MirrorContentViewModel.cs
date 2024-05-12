@@ -82,11 +82,10 @@ public class MirrorContentViewModel : BindableBase
                     throw new InvalidOperationException("Project should be opened at this stage.");
                 }
 
-                var connection = currentProject.Data.Connection;
                 var fileRepository = currentProject.Data.FileRepository;
                 var orphanedFilesRepository = currentProject.Data.OrphanedFileRepository;
 
-                var orphanedFiles = await orphanedFilesRepository.EnumerateOrphanedFilesByFolderAsync(connection, selectedFolder, true);
+                var orphanedFiles = await orphanedFilesRepository.EnumerateOrphanedFilesByFolderAsync(selectedFolder, true);
 
                 OrphanedFiles.AddRange(orphanedFiles.Select(f => new MirrorFileViewModel(f, f.DuplicatesOnLifeDrive)));
 

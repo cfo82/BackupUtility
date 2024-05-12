@@ -113,10 +113,9 @@ public class TreeViewItemViewModel : BindableBase
     {
         Children.Clear();
 
-        var connection = _dbContextData.Connection;
         var folderRepository = _dbContextData.FolderRepository;
 
-        var subFolders = await folderRepository.GetSubFoldersAsync(connection, _folder);
+        var subFolders = await folderRepository.GetSubFoldersAsync(_folder);
         var children = subFolders
             .Select(subFolder => new TreeViewItemViewModel(_selectedFolderService, _dbContextData, subFolder, this))
             .OrderBy(subFolder => subFolder.Name);

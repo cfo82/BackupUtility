@@ -74,14 +74,14 @@ public class FileEnumerator : IFileEnumerator
                             DateTime.Now,
                             null);
 
-                        var settings = await settingsRepository.GetSettingsAsync(connection, null);
+                        var settings = await settingsRepository.GetSettingsAsync(null);
 
                         if (!continueLastScan)
                         {
                             using var transaction = connection.BeginTransaction();
 
                             await _scanStatus.UpdateAsync("Mark all files in DB as untouched...", 0.0);
-                            await fileRepository.MarkAllFilesAsUntouchedAsync(connection);
+                            await fileRepository.MarkAllFilesAsUntouchedAsync();
 
                             await _scanStatus.UpdateAsync("Clear all existing bitrot from database...", 0.0);
                             await bitRotRepository.DeleteAllAsync(currentScan.Data);
@@ -127,14 +127,14 @@ public class FileEnumerator : IFileEnumerator
         IScan scan,
         bool continueLastScan)
     {
-        var rootFolder = await folderRepository.GetFolderAsync(connection, settings.RootPath);
+        var rootFolder = await folderRepository.GetFolderAsync(settings.RootPath);
         if (rootFolder == null)
         {
             return;
         }
 
-        var folderCount = await folderRepository.GetFolderCount(connection, DriveType.Working);
-        var fullPath = await folderRepository.GetFullPathForFolderAsync(connection, rootFolder);
+        var folderCount = await folderRepository.GetFolderCount(DriveType.Working);
+        var fullPath = await folderRepository.GetFullPathForFolderAsync(rootFolder);
         var fullPathString = System.IO.Path.Combine(fullPath.Select(f => f.Name).ToArray());
 
         await ProcessTreeRecursiveAsync(
@@ -168,7 +168,7 @@ public class FileEnumerator : IFileEnumerator
         await _scanStatus.UpdateAsync(status, percentage);
         _logger.LogInformation(status);
 
-        var subFolders = await folderRepository.GetSubFoldersAsync(connection, folder);
+        var subFolders = await folderRepository.GetSubFoldersAsync(folder);
         foreach (var subFolder in subFolders)
         {
             await ProcessTreeRecursiveAsync(
@@ -216,7 +216,7 @@ public class FileEnumerator : IFileEnumerator
             var lastWriteTime = fileInfo.LastWriteTimeUtc;
 
             string name = Path.GetFileName(path);
-            var file = await fileRepository.FindFileByNameAsync(connection, parentFolder, name);
+            var file = await fileRepository.FindFileByNameAsync(parentFolder, name);
             if (continueLastScan && file != null && file.Touched == 1)
             {
                 return;
@@ -235,7 +235,7 @@ public class FileEnumerator : IFileEnumerator
                     LastWriteTime = lastWriteTime.ToString("dd/MM/yyyy HH:mm:ss:fffffff", CultureInfo.InvariantCulture),
                     Touched = 1,
                 };
-                await fileRepository.SaveFileAsync(connection, file);
+                await fileRepository.SaveFileAsync(file);
             }
 
             var parsedLastWriteTime = DateTime.SpecifyKind(
@@ -249,7 +249,7 @@ public class FileEnumerator : IFileEnumerator
                 file.Hash = checksum.FullHash;
                 file.LastWriteTime = lastWriteTime.ToString("dd/MM/yyyy HH:mm:ss:fffffff", CultureInfo.InvariantCulture);
                 file.Touched = 1;
-                await fileRepository.SaveFileAsync(connection, file);
+                await fileRepository.SaveFileAsync(file);
             }
 
             // file was not written to and hashes dont match: bitrot
@@ -259,7 +259,7 @@ public class FileEnumerator : IFileEnumerator
                 await bitRotRepository.CreateBitRotAsync(scan.Data, file);
             }
 
-            await fileRepository.TouchFileAsync(connection, file);
+            await fileRepository.TouchFileAsync(file);
         }
         catch (Exception e)
         {

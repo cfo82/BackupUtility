@@ -125,6 +125,14 @@ public interface IFolderRepository : IRepository
     Task SaveFolderHashAsync(Folder folder, string hash);
 
     /// <summary>
+    /// Save the given size for the folder.
+    /// </summary>
+    /// <param name="folder">The folder for which the size should be saved.</param>
+    /// <param name="size">The size of the folder.</param>
+    /// <returns>A task for async programming.</returns>
+    Task SaveFolderSizeAsync(Folder folder, long size);
+
+    /// <summary>
     /// Find folders with the same hash.
     /// </summary>
     /// <param name="driveType">The drive on which to search for duplicates.</param>

@@ -200,6 +200,7 @@ public class FileScan : ScanOperationBase, IFileScan
                     IntroHash = checksum.IntroHash,
                     Hash = checksum.FullHash,
                     LastWriteTime = lastWriteTime.ToString("dd/MM/yyyy HH:mm:ss:fffffff", CultureInfo.InvariantCulture),
+                    Size = fileInfo.Length,
                     Touched = 1,
                 };
                 await fileRepository.SaveFileAsync(file);
@@ -215,6 +216,7 @@ public class FileScan : ScanOperationBase, IFileScan
                 file.IntroHash = checksum.IntroHash;
                 file.Hash = checksum.FullHash;
                 file.LastWriteTime = lastWriteTime.ToString("dd/MM/yyyy HH:mm:ss:fffffff", CultureInfo.InvariantCulture);
+                file.Size = fileInfo.Length;
                 file.Touched = 1;
                 await fileRepository.SaveFileAsync(file);
             }

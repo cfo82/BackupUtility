@@ -18,6 +18,11 @@ public class BaseFile
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets the size of the file.
+    /// </summary>
+    public long Size { get; set; }
+
+    /// <summary>
     /// Gets or sets the hash of the file. The hash is calculated over the entire content of the file and is being used
     /// to detect bitrot.
     /// </summary>

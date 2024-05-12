@@ -1,5 +1,6 @@
 namespace BackupUtilities.Wpf.ViewModels.Working;
 
+using System.Globalization;
 using BackupUtilities.Data.Interfaces;
 using Prism.Mvvm;
 
@@ -28,6 +29,11 @@ public class FileViewModel : BindableBase
     /// Gets the name of the file.
     /// </summary>
     public string Name => _file.Name;
+
+    /// <summary>
+    /// Gets the file size.
+    /// </summary>
+    public string Size => _file?.Size.ToString("N0", CultureInfo.CurrentCulture) ?? string.Empty;
 
     /// <summary>
     /// Gets the intro hash of the file.

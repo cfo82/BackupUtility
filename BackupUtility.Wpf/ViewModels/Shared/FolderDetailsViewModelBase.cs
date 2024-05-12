@@ -43,6 +43,11 @@ public class FolderDetailsViewModelBase : BindableBase
     public string Name => _selectedFolder?.Name ?? string.Empty;
 
     /// <summary>
+    /// Gets the size of the currently selected folder.
+    /// </summary>
+    public string Size => _selectedFolder?.Size.ToFileSizeString() ?? string.Empty;
+
+    /// <summary>
     /// Gets the full path of the currently selected folder..
     /// </summary>
     public string Path { get; private set; }

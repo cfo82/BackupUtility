@@ -33,6 +33,7 @@ public class OrphanedFileRepository : IOrphanedFileRepository
                     @"CREATE TABLE OrphanedFiles(
                             ParentId INTEGER NOT NULL,
                             Name TEXT NOT NULL,
+                            Size INTEGER NOT NULL DEFAULT 0,
                             Hash TEXT NOT NULL,
                             PRIMARY KEY (ParentId, Name)
                             FOREIGN KEY(ParentId) REFERENCES Folders(Id) ON DELETE CASCADE ON UPDATE NO ACTION
@@ -57,10 +58,12 @@ public class OrphanedFileRepository : IOrphanedFileRepository
             @"INSERT INTO OrphanedFiles(
                     ParentId,
                     Name,
+                    Size,
                     Hash
                 ) VALUES (
                     @ParentId,
                     @Name,
+                    @Size,
                     @Hash
                 );",
             orphanedFile);
@@ -73,6 +76,7 @@ public class OrphanedFileRepository : IOrphanedFileRepository
             @"SELECT
                     ParentId,
                     Name,
+                    Size,
                     Hash,
                     (SELECT COUNT(*) FROM Files B WHERE B.Hash = A.Hash) as NumCopiesOnLiveDrive
                 FROM
@@ -90,6 +94,7 @@ public class OrphanedFileRepository : IOrphanedFileRepository
                 @"SELECT
                     ParentId,
                     Name,
+                    Size,
                     Hash,
                     (SELECT COUNT(*) FROM Files B WHERE B.Hash = A.Hash) as NumCopiesOnLiveDrive
                 FROM
@@ -104,6 +109,7 @@ public class OrphanedFileRepository : IOrphanedFileRepository
                 @"SELECT
                     ParentId,
                     Name,
+                    Size,
                     Hash
                 FROM
                     OrphanedFiles

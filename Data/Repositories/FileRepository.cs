@@ -33,6 +33,7 @@ public class FileRepository : IFileRepository
                     @"CREATE TABLE Files(
                             ParentId INTEGER NOT NULL,
                             Name TEXT NOT NULL,
+                            Size INTEGER NOT NULL DEFAULT 0,
                             IntroHash TEXT NOT NULL,
                             Hash TEXT NOT NULL,
                             LastWriteTime TEXT NOT NULL,
@@ -57,6 +58,7 @@ public class FileRepository : IFileRepository
             @"SELECT
                 ParentId,
                 Name,
+                Size,
                 IntroHash,
                 Hash,
                 LastWriteTime,
@@ -80,6 +82,7 @@ public class FileRepository : IFileRepository
             @"SELECT
                 ParentId,
                 Name,
+                Size,
                 IntroHash,
                 Hash,
                 LastWriteTime,
@@ -109,6 +112,7 @@ public class FileRepository : IFileRepository
         {
             await _context.Connection.ExecuteAsync(
                 @"UPDATE FILES SET
+                    Size = @Size,
                     IntroHash = @IntroHash,
                     Hash = @Hash,
                     LastWriteTime = @LastWriteTime,
@@ -125,6 +129,7 @@ public class FileRepository : IFileRepository
                 @"INSERT INTO Files(
                     ParentId,
                     Name,
+                    Size,
                     IntroHash,
                     Hash,
                     LastWriteTime,
@@ -133,6 +138,7 @@ public class FileRepository : IFileRepository
                 ) VALUES (
                     @ParentId,
                     @Name,
+                    @Size,
                     @IntroHash,
                     @Hash,
                     @LastWriteTime,
@@ -171,6 +177,7 @@ public class FileRepository : IFileRepository
                 @"SELECT
 	                a.ParentId,
 	                a.Name,
+                    a.Size,
 	                a.IntroHash,
 	                a.Hash,
 	                a.LastWriteTime,
@@ -246,6 +253,7 @@ public class FileRepository : IFileRepository
             @"SELECT
                 ParentId,
                 Name,
+                Size,
                 IntroHash,
                 Hash,
                 LastWriteTime,
@@ -269,6 +277,7 @@ public class FileRepository : IFileRepository
             @"SELECT
                 ParentId,
                 Name,
+                Size,
                 IntroHash,
                 Hash,
                 LastWriteTime,
@@ -294,6 +303,7 @@ public class FileRepository : IFileRepository
             @"SELECT
                 ParentId,
                 Name,
+                Size,
                 IntroHash,
                 Hash,
                 LastWriteTime,

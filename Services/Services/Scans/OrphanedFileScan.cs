@@ -147,15 +147,24 @@ public class OrphanedFileScan : ScanOperationBase, IOrphanedFileScan
                 throw new InvalidOperationException("Unexpected null for fileName.");
             }
 
+            var fileInfo = new FileInfo(mirrorFilePath);
+
             var folder = await folderRepository.SaveFullPathAsync(
                 directoryName,
                 DriveType.Mirror);
+
+            var fullPath = await folderRepository.GetFullPathForFolderAsync(folder);
+            foreach (var folderToMark in fullPath)
+            {
+                await folderRepository.TouchFolderAsync(folderToMark);
+            }
 
             await orphanedFilesRepository.SaveOrphanedFileAsync(
                 new OrphanedFile()
                 {
                     ParentId = folder.Id,
                     Name = fileName,
+                    Size = fileInfo.Length,
                     Hash = hash,
                 });
         }

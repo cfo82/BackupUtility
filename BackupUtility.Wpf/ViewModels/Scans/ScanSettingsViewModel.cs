@@ -94,8 +94,8 @@ public class ScanSettingsViewModel : BindableBase
         {
             var date = currentScan.Data.CreatedDate;
             date = date.ToLocalTime();
-            var dateString = date.ToString(CultureInfo.CurrentUICulture.DateTimeFormat.ShortDatePattern, CultureInfo.CurrentUICulture);
-            var timeString = date.ToString(CultureInfo.CurrentUICulture.DateTimeFormat.ShortTimePattern, CultureInfo.CurrentUICulture);
+            var dateString = date.ToString(CultureInfo.CurrentCulture.DateTimeFormat.ShortDatePattern, CultureInfo.CurrentCulture);
+            var timeString = date.ToString(CultureInfo.CurrentCulture.DateTimeFormat.ShortTimePattern, CultureInfo.CurrentCulture);
             ScanTitle = $"Scan {dateString} {timeString}";
             SettingsWorkingDrive = currentScan.Settings.RootPath;
             SettingsMirrorDrive = currentScan.Settings.MirrorPath;

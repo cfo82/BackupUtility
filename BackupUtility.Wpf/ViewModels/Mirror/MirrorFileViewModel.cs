@@ -1,6 +1,7 @@
 namespace BackupUtilities.Wpf.ViewModels.Mirror;
 
 using System.Collections.Generic;
+using System.Globalization;
 using BackupUtilities.Data.Interfaces;
 using Prism.Mvvm;
 
@@ -39,6 +40,11 @@ public class MirrorFileViewModel : BindableBase
     /// Gets the name of the file.
     /// </summary>
     public string Name => _file.Name;
+
+    /// <summary>
+    /// Gets the file size.
+    /// </summary>
+    public string Size => _file?.Size.ToString("N0", CultureInfo.CurrentCulture) ?? string.Empty;
 
     /// <summary>
     /// Gets a value indicating whether this file has identical copies somewhere on the live drive.

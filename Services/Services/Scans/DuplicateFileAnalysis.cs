@@ -121,6 +121,8 @@ public class DuplicateFileAnalysis : ScanOperationBase, IDuplicateFileAnalysis
         await CalculateAndSaveDuplicationLevel(folderRepository, folder, subFolders, files);
 
         await CalculateAndSaveFolderHashAsync(folderRepository, folder, subFolders, files);
+
+        await CalculateAndSaveFolderSizeAsync(folderRepository, folder, subFolders, files);
     }
 
     private async Task CalculateAndSaveDuplicationLevel(
@@ -187,6 +189,20 @@ public class DuplicateFileAnalysis : ScanOperationBase, IDuplicateFileAnalysis
         var hash = BitConverter.ToString(folderChecksum).Replace("-", string.Empty).ToLower();
 
         await folderRepository.SaveFolderHashAsync(folder, hash);
+    }
+
+    private async Task CalculateAndSaveFolderSizeAsync(
+        IFolderRepository folderRepository,
+        Folder folder,
+        IEnumerable<Folder> subFolders,
+        IEnumerable<File> files)
+    {
+        long size = 0;
+
+        size += files.Sum(f => f.Size);
+        size += subFolders.Sum(f => f.Size);
+
+        await folderRepository.SaveFolderSizeAsync(folder, size);
     }
 
     private async Task ProcessDuplicateFoldersAsync(IDbConnection connection, IFolderRepository folderRepository)

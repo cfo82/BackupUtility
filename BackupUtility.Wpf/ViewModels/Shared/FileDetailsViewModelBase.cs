@@ -39,6 +39,11 @@ public class FileDetailsViewModelBase : BindableBase
     public string Name => _selectedFile?.Name ?? string.Empty;
 
     /// <summary>
+    /// Gets the size of the currently selected file.
+    /// </summary>
+    public string Size => _selectedFile?.Size.ToFileSizeString() ?? string.Empty;
+
+    /// <summary>
     /// Gets the hash of the selected file.
     /// </summary>
     public string Hash => _selectedFile?.Hash ?? string.Empty;

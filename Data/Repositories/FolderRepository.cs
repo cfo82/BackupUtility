@@ -32,6 +32,7 @@ public class FolderRepository : IFolderRepository
                             Id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
                             ParentId INTEGER,
                             Name TEXT NOT NULL,
+                            Size INTEGER NOT NULL DEFAULT 0,
                             DriveType INTEGER NOT NULL DEFAULT 0,
                             Touched INTEGER NOT NULL DEFAULT 0,
                             Hash TEXT,
@@ -51,6 +52,7 @@ public class FolderRepository : IFolderRepository
             @"INSERT INTO Folders(
                 ParentId,
                 Name,
+                Size,
                 Touched,
                 Hash,
                 IsDuplicate,
@@ -59,6 +61,7 @@ public class FolderRepository : IFolderRepository
             VALUES (
                 @ParentId,
                 @Name,
+                @Size,
                 @Touched,
                 @Hash,
                 @IsDuplicate,
@@ -161,17 +164,18 @@ public class FolderRepository : IFolderRepository
     {
         return await _context.Connection.QuerySingleOrDefaultAsync<Folder>(
             @"SELECT
-                    Id,
-                    ParentId,
-                    Name,
-                    Touched,
-                    Hash,
-                    IsDuplicate,
-                    DriveType
-                FROM
-                    Folders
-                WHERE
-                    Id = @folderId;",
+                Id,
+                ParentId,
+                Name,
+                Size,
+                Touched,
+                Hash,
+                IsDuplicate,
+                DriveType
+            FROM
+                Folders
+            WHERE
+                Id = @folderId;",
             new { folderId });
     }
 
@@ -191,6 +195,7 @@ public class FolderRepository : IFolderRepository
                     Id,
                     ParentId,
                     Name,
+                    Size,
                     Touched,
                     Hash,
                     IsDuplicate,
@@ -224,18 +229,19 @@ public class FolderRepository : IFolderRepository
     {
         return await _context.Connection.QuerySingleOrDefaultAsync<Folder>(
             @"SELECT
-                    Id,
-                    ParentId,
-                    Name,
-                    Touched,
-                    Hash,
-                    IsDuplicate,
-                    DriveType
-                FROM
-                    Folders
-                WHERE
-                    ParentId = @parentId AND
-                    Name = @name;",
+                Id,
+                ParentId,
+                Name,
+                Size,
+                Touched,
+                Hash,
+                IsDuplicate,
+                DriveType
+            FROM
+                Folders
+            WHERE
+                ParentId = @parentId AND
+                Name = @name;",
             new { parentId, name });
     }
 
@@ -247,6 +253,7 @@ public class FolderRepository : IFolderRepository
                 Id,
                 ParentId,
                 Name,
+                Size,
                 Touched,
                 Hash,
                 IsDuplicate,
@@ -267,6 +274,7 @@ public class FolderRepository : IFolderRepository
                 Id,
                 ParentId,
                 Name,
+                Size,
                 Touched,
                 Hash,
                 IsDuplicate,
@@ -298,6 +306,7 @@ public class FolderRepository : IFolderRepository
 	            Id,
                 ParentId,
                 Name,
+                Size,
                 Touched,
                 Hash,
                 IsDuplicate,
@@ -336,27 +345,37 @@ public class FolderRepository : IFolderRepository
     /// <inheritdoc />
     public async Task MarkFolderAsDuplicate(Folder folder, FolderDuplicationLevel duplicationLevel)
     {
-        var folderId = folder.Id;
         await _context.Connection.ExecuteAsync(
             @"UPDATE Folders SET
                 IsDuplicate = @duplicationLevel
             WHERE
                 Id = @folderId",
-            new { folderId, duplicationLevel });
+            new { folderId = folder.Id, duplicationLevel });
         folder.IsDuplicate = duplicationLevel;
     }
 
     /// <inheritdoc />
     public async Task SaveFolderHashAsync(Folder folder, string hash)
     {
-        var folderId = folder.Id;
         await _context.Connection.ExecuteAsync(
             @"UPDATE Folders SET
                 Hash = @hash
             WHERE
                 Id = @folderId",
-            new { folderId, hash });
+            new { folderId = folder.Id, hash });
         folder.Hash = hash;
+    }
+
+    /// <inheritdoc />
+    public async Task SaveFolderSizeAsync(Folder folder, long size)
+    {
+        await _context.Connection.ExecuteAsync(
+            @"UPDATE Folders SET
+                Size = @size
+            WHERE
+                Id = @folderId",
+            new { folderId = folder.Id, size });
+        folder.Size = size;
     }
 
     /// <inheritdoc />
@@ -367,25 +386,29 @@ public class FolderRepository : IFolderRepository
                     a.Id,
                     a.ParentId,
                     a.Name,
+                    a.Size,
                     a.Touched,
                     a.Hash,
                     a.IsDuplicate,
                     a.DriveType
                 FROM
 	                Folders a
-                WHERE 
+                WHERE
+                    DriveType = @DriveType AND
 	                a.Hash IN (
 	                SELECT
 		                Hash
 	                FROM
 		                Folders
+                    WHERE
+                        DriveType = @DriveType
 	                GROUP BY
 		                Hash
 	                HAVING
 		                COUNT(*) > 1)
                 ORDER BY
-	                a.Hash;
-                ");
+	                a.Hash;",
+                new { DriveType = driveType });
     }
 
     /// <inheritdoc />
@@ -401,6 +424,7 @@ public class FolderRepository : IFolderRepository
                 Id,
                 ParentId,
                 Name,
+                Size,
                 Touched,
                 Hash,
                 IsDuplicate,

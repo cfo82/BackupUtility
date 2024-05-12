@@ -26,6 +26,11 @@ public class Folder
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
+    /// Gets or sets the size of this folder including all content recursively.
+    /// </summary>
+    public long Size { get; set; }
+
+    /// <summary>
     /// Gets or sets a value defining if the folder is on the working drive or the mirror drive.
     /// </summary>
     public DriveType DriveType { get; set; }

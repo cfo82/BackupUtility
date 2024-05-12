@@ -19,6 +19,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
@@ -28,17 +29,20 @@
             <Label Grid.Row="1" Grid.Column="0" Content="Name:" VerticalAlignment="Top" Padding="4"/>
             <Label Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Content="{Binding Name}" Padding="4"/>
 
-            <Label Grid.Row="2" Grid.Column="0" Content="Pfad:" VerticalAlignment="Top" Padding="4"/>
-            <Button Grid.Row="2" Grid.Column="1" Command="{Binding CopyPathToClipboardCommand}" ToolTip="Copy path to clipboard" Width="24" Height="24" Margin="4,0,0,0">
+            <Label Grid.Row="2" Grid.Column="0" Content="Size:" VerticalAlignment="Top" Padding="4"/>
+            <Label Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Content="{Binding Size}" Padding="4"/>
+
+            <Label Grid.Row="3" Grid.Column="0" Content="Pfad:" VerticalAlignment="Top" Padding="4"/>
+            <Button Grid.Row="3" Grid.Column="1" Command="{Binding CopyPathToClipboardCommand}" ToolTip="Copy path to clipboard" Width="24" Height="24" Margin="4,0,0,0">
                 <Image Source="/Images/9069845_copy_icon.png" Width="16" Height="16" />
             </Button>
-            <Label Grid.Row="2" Grid.Column="2" Content="{Binding Path}" Padding="4"/>
+            <Label Grid.Row="3" Grid.Column="2" Content="{Binding Path}" Padding="4"/>
 
-            <Label Grid.Row="3" Grid.Column="0" Content="Touched:" VerticalAlignment="Top" Padding="4" Visibility="{Binding HasTouchedAttribute, Converter={converter:BoolToVisibilityConverter}}"/>
-            <Label Grid.Row="3" Grid.Column="1" Grid.ColumnSpan="2" Content="{Binding Touched}" Padding="4" Visibility="{Binding HasTouchedAttribute, Converter={converter:BoolToVisibilityConverter}}"/>
+            <Label Grid.Row="4" Grid.Column="0" Content="Touched:" VerticalAlignment="Top" Padding="4" Visibility="{Binding HasTouchedAttribute, Converter={converter:BoolToVisibilityConverter}}"/>
+            <Label Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Content="{Binding Touched}" Padding="4" Visibility="{Binding HasTouchedAttribute, Converter={converter:BoolToVisibilityConverter}}"/>
 
-            <Label Grid.Row="4" Grid.Column="0" Content="Duplicates:" VerticalAlignment="Top" Padding="4"/>
-            <ScrollViewer Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <Label Grid.Row="5" Grid.Column="0" Content="Duplicates:" VerticalAlignment="Top" Padding="4"/>
+            <ScrollViewer Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                 <ItemsControl
                     ItemsSource="{Binding Duplicates}"
                     Padding="4"

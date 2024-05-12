@@ -19,6 +19,7 @@
             <ListView.View>
                 <GridView>
                     <GridViewColumn Header="Name" Width="300" DisplayMemberBinding="{Binding Name}"/>
+                    <GridViewColumn Header="Size" Width="150" DisplayMemberBinding="{Binding Size}"/>
                     <GridViewColumn Header="Hash" Width="150" DisplayMemberBinding="{Binding Hash}"/>
                 </GridView>
             </ListView.View>

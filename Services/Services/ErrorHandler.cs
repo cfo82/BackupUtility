@@ -1,4 +1,4 @@
-namespace BackupUtilities.Services;
+namespace BackupUtilities.Services.Services;
 
 using System;
 using BackupUtilities.Services.Interfaces;

@@ -1,4 +1,4 @@
-namespace BackupUtilities.Services;
+namespace BackupUtilities.Services.Services;
 
 using System;
 using BackupUtilities.Data.Interfaces;
@@ -146,7 +146,7 @@ public class BackupProject : IBackupProject
 
     private void UpdateIsReady()
     {
-        IsReady = System.IO.Directory.Exists(_settings.RootPath)
-            && System.IO.Directory.Exists(_settings.MirrorPath);
+        IsReady = Directory.Exists(_settings.RootPath)
+            && Directory.Exists(_settings.MirrorPath);
     }
 }

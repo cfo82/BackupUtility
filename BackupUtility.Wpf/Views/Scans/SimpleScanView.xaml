@@ -10,40 +10,11 @@
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Status" FontSize="18" Margin="12,12,12,4"/>
         
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="Auto"/>
-            <ColumnDefinition Width="*"/>
-        </Grid.ColumnDefinitions>
-
-        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" Text="{Binding ScanTitle}" FontSize="18" Margin="12,12,12,4"/>
-
-        <Grid Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" Margin="24,4,12,4">
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-            </Grid.RowDefinitions>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-
-            <TextBlock Grid.Row="0" Grid.Column="0" Text="Working Drive Root: "/>
-            <TextBlock Grid.Row="0" Grid.Column="1" MinWidth="150" Text="{Binding SettingsWorkingDrive}"/>
-
-            <TextBlock Grid.Row="1" Grid.Column="0" Text="Mirror Drive Root: "/>
-            <TextBlock Grid.Row="1" Grid.Column="1" MinWidth="150" Text="{Binding SettingsMirrorDrive}"/>
-        </Grid>
-
-        <Separator Grid.Row="2" Grid.ColumnSpan="3" Margin="0,12,0,0"/>
-
-        <TextBlock Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" Text="Status" FontSize="18" Margin="12,12,12,4"/>
-        <Grid Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" Margin="24,4,12,4">
+        <Grid Grid.Row="1" Margin="24,4,12,4">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>

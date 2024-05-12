@@ -127,7 +127,8 @@ public partial class App : PrismApplication
         regionManager.RegisterViewWithRegion("Region_Mirror_FolderDetails", typeof(MirrorFolderDetailsView));
         regionManager.RegisterViewWithRegion("Region_Mirror_FileDetails", typeof(MirrorFileDetailsView));
 
-        regionManager.RegisterViewWithRegion("Region_Scan_Details", typeof(SimpleScanView));
+        regionManager.RegisterViewWithRegion("Region_Scan_Settings", typeof(ScanSettingsView));
+        regionManager.RegisterViewWithRegion("Region_Scan_Status", typeof(SimpleScanView));
 
         base.OnInitialized();
     }

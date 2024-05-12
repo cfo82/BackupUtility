@@ -22,6 +22,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
@@ -36,6 +37,8 @@
 
         <Separator Grid.Row="3" Grid.ColumnSpan="2"/>
 
-        <ContentControl Grid.Row="4" Grid.ColumnSpan="2" prism:RegionManager.RegionName="Region_Scan_Details" />
+        <ContentControl Grid.Row="4" Grid.ColumnSpan="2" prism:RegionManager.RegionName="Region_Scan_Settings" />
+
+        <ContentControl Grid.Row="5" Grid.ColumnSpan="2" prism:RegionManager.RegionName="Region_Scan_Status" />
     </Grid>
 </UserControl>

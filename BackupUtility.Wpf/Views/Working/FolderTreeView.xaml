@@ -3,31 +3,38 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:behavior="clr-namespace:BackupUtilities.Wpf.Behavior"
              xmlns:converter="clr-namespace:BackupUtilities.Wpf.Converter"
              xmlns:viewModels="clr-namespace:BackupUtilities.Wpf.ViewModels.Working"
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
+    <UserControl.Resources>
+        <converter:DuplicationLevelToBackgroundColorConverter x:Key="bla" />
+    </UserControl.Resources>
     <Grid>
-        <TreeView
+        <TreeView Style="{StaticResource FullWidthSelectionTreeStyle}"
             ItemsSource="{Binding TopLevelItems}"
-            VirtualizingStackPanel.IsVirtualizing="True"
+            VirtualizingStackPanel.IsVirtualizing="False"
             VirtualizingStackPanel.VirtualizationMode="Recycling">
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type viewModels:TreeViewItemViewModel}" ItemsSource="{Binding Children}">
-                    <Grid>
-                        <Border Background="LightCoral"  Visibility="{Binding AllFilesAreDuplicates, Converter={converter:BoolToVisibilityConverter}}"/>
-                        <Border Background="LightYellow"  Visibility="{Binding ContainsDuplicates, Converter={converter:BoolToVisibilityConverter}}"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/Images/9069720_full.png" Visibility="{Binding IsHashIdentical, Converter={converter:BoolToVisibilityConverter}}" Width="14" Height="14" Margin="0,0,4,0" />
+                        <Image Source="/Images/9069470_part.png" Visibility="{Binding ContainsDuplicates, Converter={converter:BoolToVisibilityConverter}}" Width="14" Height="14" Margin="0,0,4,0" />
+                        <Image Source="/Images/9069165_empty.png" Visibility="{Binding IsUnique, Converter={converter:BoolToVisibilityConverter}}" Width="14" Height="14" Margin="0,0,4,0" />
                         <TextBlock Text="{Binding Name}"/>
-                    </Grid>
+                    </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
+
             <TreeView.ItemContainerStyle>
-                <Style TargetType="TreeViewItem">
+                <Style TargetType="TreeViewItem" BasedOn="{StaticResource TreeViewItemContainerStyle}">
+                    <Setter Property="behavior:TreeViewItemBehavior.IsBroughtIntoViewWhenSelected" Value="True"/>
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="Background" Value="{Binding DuplicationLevel, Converter={converter:DuplicationLevelToBackgroundColorConverter}}" />
                 </Style>
             </TreeView.ItemContainerStyle>
-
         </TreeView>
     </Grid>
 </UserControl>

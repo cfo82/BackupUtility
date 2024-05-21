@@ -29,7 +29,7 @@
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
 
-        <Button Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" Width="64" Height="64" Margin="12" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsEnabled="{Binding AreButtonsEnabled}" Command="{Binding RunCompleteScanCommand}">
+        <Button Grid.Row="0" Grid.RowSpan="3" Grid.Column="0" Width="64" Height="64" Margin="12" VerticalAlignment="Top" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" IsEnabled="{Binding AreButtonsEnabled}" Command="{Binding RunCompleteScanCommand}" Style="{StaticResource DefaultButtonStyle}">
             <Image Source="/Images/9070794_play_two_icon.png"/>
         </Button>
         <TextBlock Grid.Row="0" Grid.Column="1" Text="Run All Steps with Settings" FontSize="18" Margin="12,12,12,4"/>

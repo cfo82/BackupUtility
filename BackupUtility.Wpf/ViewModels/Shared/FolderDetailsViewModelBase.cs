@@ -1,11 +1,13 @@
 namespace BackupUtilities.Wpf.ViewModels.Shared;
 
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using BackupUtilities.Data.Interfaces;
 using BackupUtilities.Services.Interfaces;
+using BackupUtilities.Wpf.Contracts;
 using BackupUtilities.Wpf.Views.Shared;
 using Prism.Commands;
 using Prism.Mvvm;
@@ -16,20 +18,25 @@ using Prism.Mvvm;
 public class FolderDetailsViewModelBase : BindableBase
 {
     private readonly IProjectManager _projectManager;
+    private readonly ISelectedFolderService _selectedFolderService;
     private Folder? _selectedFolder;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FolderDetailsViewModelBase"/> class.
     /// </summary>
+    /// <param name="selectedFolderService">The service to manage the currently selected folder.</param>
     /// <param name="projectManager">Manages the current project.</param>
     public FolderDetailsViewModelBase(
+        ISelectedFolderService selectedFolderService,
         IProjectManager projectManager)
     {
+        _selectedFolderService = selectedFolderService;
         _projectManager = projectManager;
 
         Path = string.Empty;
         Duplicates = new();
         CopyPathToClipboardCommand = new DelegateCommand(OnCopyPathToClipboard);
+        OpenFolderInExplorerCommand = new DelegateCommand(OnOpenFolderInExplorer);
     }
 
     /// <summary>
@@ -61,6 +68,11 @@ public class FolderDetailsViewModelBase : BindableBase
     /// Gets the command to copy path of the currently selected folder to the clipboard.
     /// </summary>
     public ICommand CopyPathToClipboardCommand { get; private set; }
+
+    /// <summary>
+    /// Gets a command to open the folder in explorer.
+    /// </summary>
+    public ICommand OpenFolderInExplorerCommand { get; private set; }
 
     /// <summary>
     /// Gets a value indicating whether this folder has been deleted in the meantime.
@@ -127,7 +139,7 @@ public class FolderDetailsViewModelBase : BindableBase
             foreach (var duplicate in await folderRepository.EnumerateDuplicatesOfFolder(_selectedFolder, DriveType.Working))
             {
                 fullPath = await folderRepository.GetFullPathForFolderAsync(duplicate);
-                Duplicates.Add(new DuplicateFolderViewModel(System.IO.Path.Join(fullPath.Select(f => f.Name).ToArray())));
+                Duplicates.Add(new DuplicateFolderViewModel(_selectedFolderService, duplicate, System.IO.Path.Join(fullPath.Select(f => f.Name).ToArray())));
             }
         }
 
@@ -137,5 +149,10 @@ public class FolderDetailsViewModelBase : BindableBase
     private void OnCopyPathToClipboard()
     {
         System.Windows.Clipboard.SetText(Path);
+    }
+
+    private void OnOpenFolderInExplorer()
+    {
+        Process.Start("explorer.exe", Path);
     }
 }

@@ -50,10 +50,10 @@
                                     <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Command="{Binding CopyFolderPathToClipboardCommand}" ToolTip="Copy folder path to clipboard" Width="24" Height="24" Margin="0,0,4,0">
+                                <Button Grid.Column="0" Command="{Binding CopyFolderPathToClipboardCommand}" ToolTip="Copy folder path to clipboard" Width="24" Height="24" Margin="0,0,4,0" Style="{StaticResource DefaultButtonStyle}">
                                     <Image Source="/Images/9069845_copy_icon.png" Width="16" Height="16" />
                                 </Button>
-                                <Button Grid.Column="1" Command="{Binding CopyFilePathToClipboardCommand}" ToolTip="Copy file path to clipboard" Width="24" Height="24">
+                                <Button Grid.Column="1" Command="{Binding CopyFilePathToClipboardCommand}" ToolTip="Copy file path to clipboard" Width="24" Height="24" Style="{StaticResource DefaultButtonStyle}">
                                     <Image Source="/Images/9070812_copy_one_icon.png" Width="16" Height="16" />
                                 </Button>
                                 <Label Grid.Column="2" Content="{Binding FilePath}" Padding="4"/>

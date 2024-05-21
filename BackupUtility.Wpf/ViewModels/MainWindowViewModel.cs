@@ -2,6 +2,7 @@ namespace BackupUtilities.Wpf.ViewModels;
 
 using System;
 using BackupUtilities.Services.Interfaces;
+using BackupUtilities.Wpf.Contracts;
 using BackupUtilities.Wpf.Views;
 using Prism.Mvvm;
 
@@ -11,6 +12,7 @@ using Prism.Mvvm;
 public class MainWindowViewModel : BindableBase
 {
     private readonly IProjectManager _projectManager;
+    private readonly ISelectedFolderService _selectedFolderService;
     private IBackupProject? _currentProject;
     private IScan? _currentScan;
     private bool _isReady = false;
@@ -22,12 +24,17 @@ public class MainWindowViewModel : BindableBase
     /// Initializes a new instance of the <see cref="MainWindowViewModel"/> class.
     /// </summary>
     /// <param name="projectManager">The project manager.</param>
+    /// <param name="selectedFolderService">The folder selection service.</param>
     public MainWindowViewModel(
-        IProjectManager projectManager)
+        IProjectManager projectManager,
+        ISelectedFolderService selectedFolderService)
     {
         _projectManager = projectManager;
+        _selectedFolderService = selectedFolderService;
 
         _projectManager.CurrentProjectChanged += OnCurrentProjectChanged;
+        _selectedFolderService.SelectedFolderChanged += OnSelectedFolderChanged;
+
         OnCurrentProjectChanged(null, EventArgs.Empty);
         OnCurrentScanChanged(null, EventArgs.Empty);
     }
@@ -136,5 +143,10 @@ public class MainWindowViewModel : BindableBase
         {
             SelectedTabIndex = 0;
         }
+    }
+
+    private void OnSelectedFolderChanged(object? sender, SelectedFolderChangedEventArgs e)
+    {
+        SelectedTabIndex = 2;
     }
 }

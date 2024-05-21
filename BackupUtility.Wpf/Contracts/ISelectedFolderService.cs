@@ -11,12 +11,17 @@ public interface ISelectedFolderService
     /// <summary>
     /// Fired when the selected folder changes.
     /// </summary>
-    public event EventHandler<EventArgs>? SelectedFolderChanged;
+    public event EventHandler<SelectedFolderChangedEventArgs>? SelectedFolderChanged;
 
     /// <summary>
     /// Fired when the selected folder on the mirror drive changes.
     /// </summary>
     public event EventHandler<EventArgs>? SelectedMirrorFolderChanged;
+
+    /// <summary>
+    /// Gets or sets a value indicating whether events are fired when the properties change.
+    /// </summary>
+    public bool FireEvents { get; set; }
 
     /// <summary>
     /// Gets or sets the currently selected folder.

@@ -18,13 +18,17 @@ public class SelectedFolderService : ISelectedFolderService
     public SelectedFolderService()
     {
         _selectedFolder = null;
+        FireEvents = true;
     }
 
     /// <inheritdoc/>
-    public event EventHandler<EventArgs>? SelectedFolderChanged;
+    public event EventHandler<SelectedFolderChangedEventArgs>? SelectedFolderChanged;
 
     /// <inheritdoc/>
     public event EventHandler<EventArgs>? SelectedMirrorFolderChanged;
+
+    /// <inheritdoc/>
+    public bool FireEvents { get; set; }
 
     /// <inheritdoc/>
     public Folder? SelectedFolder
@@ -38,8 +42,12 @@ public class SelectedFolderService : ISelectedFolderService
         {
             if (value != _selectedFolder)
             {
+                var previous = _selectedFolder;
                 _selectedFolder = value;
-                SelectedFolderChanged?.Invoke(this, EventArgs.Empty);
+                if (FireEvents)
+                {
+                    SelectedFolderChanged?.Invoke(this, new SelectedFolderChangedEventArgs(previous, _selectedFolder));
+                }
             }
         }
     }
@@ -57,7 +65,10 @@ public class SelectedFolderService : ISelectedFolderService
             if (value != _selectedMirrorFolder)
             {
                 _selectedMirrorFolder = value;
-                SelectedMirrorFolderChanged?.Invoke(this, EventArgs.Empty);
+                if (FireEvents)
+                {
+                    SelectedMirrorFolderChanged?.Invoke(this, EventArgs.Empty);
+                }
             }
         }
     }

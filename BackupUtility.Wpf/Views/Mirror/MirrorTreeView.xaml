@@ -14,17 +14,19 @@
             VirtualizingStackPanel.VirtualizationMode="Recycling">
             <TreeView.ItemTemplate>
                 <HierarchicalDataTemplate DataType="{x:Type mirror:MirrorTreeViewItemViewModel}" ItemsSource="{Binding Children}">
-                    <Grid>
-                        <Border Background="LightCoral"  Visibility="{Binding AllFilesAreDuplicates, Converter={converter:BoolToVisibilityConverter}}"/>
-                        <Border Background="LightYellow"  Visibility="{Binding ContainsDuplicates, Converter={converter:BoolToVisibilityConverter}}"/>
+                    <StackPanel Orientation="Horizontal">
+                        <Image Source="/Images/9069720_full.png" Visibility="{Binding IsHashIdentical, Converter={converter:BoolToVisibilityConverter}}" Width="14" Height="14" Margin="0,0,4,0" />
+                        <Image Source="/Images/9069470_part.png" Visibility="{Binding ContainsDuplicates, Converter={converter:BoolToVisibilityConverter}}" Width="14" Height="14" Margin="0,0,4,0" />
+                        <Image Source="/Images/9069165_empty.png" Visibility="{Binding IsUnique, Converter={converter:BoolToVisibilityConverter}}" Width="14" Height="14" Margin="0,0,4,0" />
                         <TextBlock Text="{Binding Name}"/>
-                    </Grid>
+                    </StackPanel>
                 </HierarchicalDataTemplate>
             </TreeView.ItemTemplate>
             <TreeView.ItemContainerStyle>
-                <Style TargetType="TreeViewItem">
+                <Style TargetType="TreeViewItem" BasedOn="{StaticResource TreeViewItemContainerStyle}">
                     <Setter Property="IsSelected" Value="{Binding IsSelected, Mode=TwoWay}" />
                     <Setter Property="IsExpanded" Value="{Binding IsExpanded, Mode=TwoWay}" />
+                    <Setter Property="Background" Value="{Binding DuplicationLevel, Converter={converter:DuplicationLevelToBackgroundColorConverter}}" />
                 </Style>
             </TreeView.ItemContainerStyle>
         </TreeView>

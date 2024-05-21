@@ -52,6 +52,12 @@
         <Resource Include="Images\9069050_doc_fail_icon.png" />
         <Resource Include="Images\9070812_copy_one_icon.png" />
         <Resource Include="Images\9070794_play_two_icon.png" />
+        <Resource Include="Images\9069931_one_to_icon.png" />
+        <Resource Include="Images\9069165_empty.png" />
+        <Resource Include="Images\9069470_part.png" />
+        <Resource Include="Images\9069720_full.png" />
+        <Resource Include="Images\9068740_upload_three_icon.png" />
+        <Resource Include="Images\9069532_layout_three_icon.png" />
     </ItemGroup>
 
 	<ItemGroup>

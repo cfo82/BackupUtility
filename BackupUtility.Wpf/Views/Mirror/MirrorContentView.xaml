@@ -6,19 +6,23 @@
              xmlns:converter="clr-namespace:BackupUtilities.Wpf.Converter"
              mc:Ignorable="d"
              d:DesignHeight="300" d:DesignWidth="300">
-    <UserControl.Resources>
-        <converter:DuplicatesBrushColorConverter x:Key="DuplicatesBrushColorConverter"/>
-    </UserControl.Resources>
     <Grid>
-        <ListView ItemsSource="{Binding OrphanedFiles}" SelectedItem="{Binding SelectedFile, Mode=TwoWay}">
+        <ListView ItemsSource="{Binding OrphanedFiles}" SelectedItem="{Binding SelectedFile, Mode=TwoWay}" SelectionMode="Single">
             <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="Background" Value="{Binding HasCopiesOnLiveDrive, Converter={StaticResource DuplicatesBrushColorConverter}}"/>
+                <Style TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
+                    <Setter Property="Background" Value="{Binding HasCopiesOnLiveDrive, Converter={converter:DuplicatesBrushColorConverter}}"/>
                 </Style>
             </ListView.ItemContainerStyle>
             <ListView.View>
                 <GridView>
-                    <GridViewColumn Header="Name" Width="300" DisplayMemberBinding="{Binding Name}"/>
+                    <GridViewColumn Header="Name" Width="300">
+                        <GridViewColumn.CellTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Name}" />
+                            </DataTemplate>
+                        </GridViewColumn.CellTemplate>
+                    </GridViewColumn>
+
                     <GridViewColumn Header="Size" Width="150" DisplayMemberBinding="{Binding Size}"/>
                     <GridViewColumn Header="Hash" Width="150" DisplayMemberBinding="{Binding Hash}"/>
                 </GridView>

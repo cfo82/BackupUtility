@@ -1,8 +1,11 @@
 namespace BackupUtilities.Wpf.ViewModels.Working;
 
+using System;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading.Tasks;
 using BackupUtilities.Data.Interfaces;
+using BackupUtilities.Services.Interfaces;
 using BackupUtilities.Wpf.Contracts;
 using Prism.Mvvm;
 
@@ -11,28 +14,34 @@ using Prism.Mvvm;
 /// </summary>
 public class TreeViewItemViewModel : BindableBase
 {
+    private readonly IErrorHandler _errorHandler;
     private readonly ISelectedFolderService _selectedFolderService;
     private readonly IDbContextData _dbContextData;
     private readonly Folder _folder;
     private readonly TreeViewItemViewModel? _parent;
+    private TaskCompletionSource _isFilledCompletionSource;
     private bool _isSelected;
     private bool _isExpanded;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TreeViewItemViewModel"/> class.
     /// </summary>
+    /// <param name="errorHandler">The error handler.</param>
     /// <param name="selectedFolderService">The service to manage the currently selected folder.</param>
     /// <param name="dbContextData">The data layer.</param>
     /// <param name="folder">The folder that is represented by this item.</param>
     /// <param name="parent">The parent item in the tree.</param>
     public TreeViewItemViewModel(
+        IErrorHandler errorHandler,
         ISelectedFolderService selectedFolderService,
         IDbContextData dbContextData,
         Folder folder,
         TreeViewItemViewModel? parent)
     {
+        _errorHandler = errorHandler;
         _selectedFolderService = selectedFolderService;
         _dbContextData = dbContextData;
+        _isFilledCompletionSource = new TaskCompletionSource();
         _folder = folder;
         _parent = parent;
 
@@ -50,9 +59,14 @@ public class TreeViewItemViewModel : BindableBase
     }
 
     /// <summary>
-    /// Gets a value indicating whether all subfolders and files inside the folder are duplicates.
+    /// Gets the id of the folder represented by this view model.
     /// </summary>
-    public bool AllFilesAreDuplicates => _folder.IsDuplicate == FolderDuplicationLevel.HashIdenticalToOtherFolder;
+    public long Id => _folder.Id;
+
+    /// <summary>
+    /// Gets a value indicating whether the entire folder has another copy of it somewhere else..
+    /// </summary>
+    public bool IsHashIdentical => _folder.IsDuplicate == FolderDuplicationLevel.HashIdenticalToOtherFolder;
 
     /// <summary>
     /// Gets a value indicating whether the folder contains duplicates.
@@ -61,9 +75,19 @@ public class TreeViewItemViewModel : BindableBase
         _folder.IsDuplicate == FolderDuplicationLevel.EntireContentAreDuplicates;
 
     /// <summary>
+    /// Gets a value indicating whether this folder does not contain any duplicate fiels.
+    /// </summary>
+    public bool IsUnique => !IsHashIdentical && !ContainsDuplicates;
+
+    /// <summary>
     /// Gets the name of this item.
     /// </summary>
     public string Name => $"{_folder.Name} [{_folder.Id}]";
+
+    /// <summary>
+    /// Gets a <see cref="TaskCompletionSource"/> to wait for when you need to ensure the children are correctly loaded.
+    /// </summary>
+    public TaskCompletionSource IsFilledCompletionSource => _isFilledCompletionSource;
 
     /// <summary>
     /// Gets or sets a value indicating whether this item is currently selected.
@@ -90,6 +114,11 @@ public class TreeViewItemViewModel : BindableBase
     }
 
     /// <summary>
+    /// Gets the folder duplication level of this folder.
+    /// </summary>
+    public FolderDuplicationLevel DuplicationLevel => _folder.IsDuplicate;
+
+    /// <summary>
     /// Gets the children of this item.
     /// </summary>
     public ObservableCollection<TreeViewItemViewModel> Children { get; }
@@ -104,6 +133,7 @@ public class TreeViewItemViewModel : BindableBase
             }
             else
             {
+                _isFilledCompletionSource = new TaskCompletionSource();
                 Children.Clear();
             }
         }
@@ -111,15 +141,24 @@ public class TreeViewItemViewModel : BindableBase
 
     private async void Fill()
     {
-        Children.Clear();
+        try
+        {
+            Children.Clear();
 
-        var folderRepository = _dbContextData.FolderRepository;
+            var folderRepository = _dbContextData.FolderRepository;
 
-        var subFolders = await folderRepository.GetSubFoldersAsync(_folder);
-        var children = subFolders
-            .Select(subFolder => new TreeViewItemViewModel(_selectedFolderService, _dbContextData, subFolder, this))
-            .OrderBy(subFolder => subFolder.Name);
+            var subFolders = await folderRepository.GetSubFoldersAsync(_folder);
+            var children = subFolders
+                .Select(subFolder => new TreeViewItemViewModel(_errorHandler, _selectedFolderService, _dbContextData, subFolder, this))
+                .OrderBy(subFolder => subFolder.Name);
 
-        Children.AddRange(children);
+            Children.AddRange(children);
+
+            _isFilledCompletionSource.SetResult();
+        }
+        catch (Exception e)
+        {
+            _errorHandler.Error = e;
+        }
     }
 }

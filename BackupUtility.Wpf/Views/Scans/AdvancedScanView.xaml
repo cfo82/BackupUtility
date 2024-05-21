@@ -12,7 +12,7 @@
             <Setter Property="MaxHeight" Value="800"/>
             <Setter Property="HorizontalAlignment" Value="Left"/>
         </Style>
-        <Style x:Key="ActionButtonStyle" TargetType="Button">
+        <Style x:Key="ActionButtonStyle" TargetType="Button" BasedOn="{StaticResource DefaultButtonStyle}">
             <Setter Property="HorizontalAlignment" Value="Stretch"/>
             <Setter Property="Margin" Value="18,4,4,4"/>
             <Setter Property="VerticalAlignment" Value="Top"/>
@@ -51,14 +51,14 @@
 
                 <Image Grid.Row="0" Grid.RowSpan="5" Grid.Column="0" Source="/Images/9069097_folder_search_icon.png" Width="64" Height="64" Margin="12" VerticalAlignment="Top"/>
                 <TextBlock Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Text="Step 1: Folder Scan" FontSize="18" Margin="12"/>
-                <Button Grid.Row="1" Grid.Column="1" Style="{StaticResource ActionButtonStyle}" IsEnabled="{Binding FolderScanViewModel.IsRunButtonEnabled}" Command="{Binding FolderScanViewModel.RunFolderScanCommand}">
+                <Button Grid.Row="1" Grid.Column="1" Style="{StaticResource ActionButtonStyle}" IsEnabled="{Binding FolderScanViewModel.IsRunButtonEnabled}" Command="{Binding FolderScanViewModel.RunFolderScanCommand}" >
                     <StackPanel Orientation="Horizontal">
                         <Image Source="/Images/9070794_play_two_icon.png" Width="18" Height="18"/>
                         <TextBlock Text="Run"/>
                     </StackPanel>
                 </Button>
                 <TextBlock Grid.Row="1" Grid.Column="2" Margin="12,4" Style="{StaticResource DescriptionTextStyle}" Text="Search the entire working drive for all folders and store them inside the database." />
-                <ProgressBar Grid.Row="2" Grid.ColumnSpan="3" Minimum="0" Maximum="1" IsIndeterminate="{Binding FolderScanViewModel.IsProgressBarIndeterminate}" Margin="12,4" Value="{Binding FolderScanViewModel.Progress}" />
+                <ProgressBar Style="{DynamicResource DefaultProgressBarStyle}" Grid.Row="2" Grid.ColumnSpan="3" Minimum="0" Maximum="1" IsIndeterminate="{Binding FolderScanViewModel.IsProgressBarIndeterminate}" Margin="12,4" Value="{Binding FolderScanViewModel.Progress}" />
                 <TextBlock Grid.Row="2" Grid.ColumnSpan="3" Margin="24,8" Text="{Binding FolderScanViewModel.ProgressText}"/>
                 <Separator Grid.Row="3" Grid.ColumnSpan="3" />
 
@@ -94,10 +94,10 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <ProgressBar Grid.Column="0" Grid.ColumnSpan="2" Minimum="0" Maximum="1" IsIndeterminate="{Binding FileScanViewModel.IsProgressBarIndeterminate}" Margin="4" Value="{Binding FileScanViewModel.Progress}" />
+                    <ProgressBar Style="{DynamicResource DefaultProgressBarStyle}" Grid.Column="0" Grid.ColumnSpan="2" Minimum="0" Maximum="1" IsIndeterminate="{Binding FileScanViewModel.IsProgressBarIndeterminate}" Margin="4" Value="{Binding FileScanViewModel.Progress}" />
                     <TextBlock Grid.Column="0" Grid.ColumnSpan="2" Margin="12,8" Text="{Binding FileScanViewModel.ProgressText}"/>
 
-                    <ProgressBar Grid.Column="2" Minimum="0" Maximum="1" Margin="4" Value="{Binding FileScanViewModel.FolderProgress}" />
+                    <ProgressBar Style="{DynamicResource DefaultProgressBarStyle}" Grid.Column="2" Minimum="0" Maximum="1" Margin="4" Value="{Binding FileScanViewModel.FolderProgress}" />
                     <TextBlock Grid.Column="2" Margin="24,8" Text="{Binding FileScanViewModel.FolderProgressText}"/>
                 </Grid>
 
@@ -112,7 +112,7 @@
                     </StackPanel>
                 </Button>
                 <TextBlock Grid.Row="11" Grid.Column="2" Style="{StaticResource DescriptionTextStyle}" Text="Based on the previous two scans walk the entire folder tree, check each file for duplicates (based on its hash), compute a hash value for each folder and check if entire folder contents are available as duplicates." />
-                <ProgressBar Grid.Row="12" Grid.ColumnSpan="3" Minimum="0" Maximum="1" IsIndeterminate="{Binding DuplicateFileAnalysisViewModel.IsProgressBarIndeterminate}" Margin="12,4" Value="{Binding DuplicateFileAnalysisViewModel.Progress}" />
+                <ProgressBar Style="{DynamicResource DefaultProgressBarStyle}" Grid.Row="12" Grid.ColumnSpan="3" Minimum="0" Maximum="1" IsIndeterminate="{Binding DuplicateFileAnalysisViewModel.IsProgressBarIndeterminate}" Margin="12,4" Value="{Binding DuplicateFileAnalysisViewModel.Progress}" />
                 <TextBlock Grid.Row="12" Grid.ColumnSpan="3" Margin="24,8" Text="{Binding DuplicateFileAnalysisViewModel.ProgressText}"/>
                 <Separator Grid.Row="13" Grid.ColumnSpan="3" />
 
@@ -125,7 +125,7 @@
                     </StackPanel>
                 </Button>
                 <TextBlock Grid.Row="15" Grid.Column="2" Style="{StaticResource DescriptionTextStyle}" Text="Scan the mirror drive for files that no longer exist on the working drive. For each of those files check if the file still exists on the working drive at a different location based on its hash." />
-                <ProgressBar Grid.Row="16" Grid.ColumnSpan="3" Minimum="0" Maximum="1" IsIndeterminate="{Binding OrphanedFileScanViewModel.IsProgressBarIndeterminate}" Margin="12,4" Value="{Binding OrphanedFileScanViewModel.Progress}" />
+                <ProgressBar Style="{DynamicResource DefaultProgressBarStyle}" Grid.Row="16" Grid.ColumnSpan="3" Minimum="0" Maximum="1" IsIndeterminate="{Binding OrphanedFileScanViewModel.IsProgressBarIndeterminate}" Margin="12,4" Value="{Binding OrphanedFileScanViewModel.Progress}" />
                 <TextBlock Grid.Row="16" Grid.ColumnSpan="3" Margin="24,8" Text="{Binding OrphanedFileScanViewModel.ProgressText}"/>
             </Grid>
         </ScrollViewer>

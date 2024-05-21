@@ -11,6 +11,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="*"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
@@ -24,25 +25,28 @@
             </Grid.RowDefinitions>
 
             <Label Grid.Row="0" Grid.Column="0" Content="Id:" VerticalAlignment="Top" Padding="4"/>
-            <Label Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="2" Content="{Binding FolderId}" Padding="4"/>
+            <Label Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" Content="{Binding FolderId}" Padding="4"/>
 
             <Label Grid.Row="1" Grid.Column="0" Content="Name:" VerticalAlignment="Top" Padding="4"/>
-            <Label Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="2" Content="{Binding Name}" Padding="4"/>
+            <Label Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="3" Content="{Binding Name}" Padding="4"/>
 
             <Label Grid.Row="2" Grid.Column="0" Content="Size:" VerticalAlignment="Top" Padding="4"/>
-            <Label Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="2" Content="{Binding Size}" Padding="4"/>
+            <Label Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" Content="{Binding Size}" Padding="4"/>
 
             <Label Grid.Row="3" Grid.Column="0" Content="Pfad:" VerticalAlignment="Top" Padding="4"/>
-            <Button Grid.Row="3" Grid.Column="1" Command="{Binding CopyPathToClipboardCommand}" ToolTip="Copy path to clipboard" Width="24" Height="24" Margin="4,0,0,0">
+            <Button Style="{DynamicResource DefaultButtonStyle}" Grid.Row="3" Grid.Column="1" Command="{Binding CopyPathToClipboardCommand}" ToolTip="Copy path to clipboard" Width="24" Height="24" Margin="4,0,0,0">
                 <Image Source="/Images/9069845_copy_icon.png" Width="16" Height="16" />
             </Button>
-            <Label Grid.Row="3" Grid.Column="2" Content="{Binding Path}" Padding="4"/>
+            <Button Style="{DynamicResource DefaultButtonStyle}" Grid.Row="3" Grid.Column="2" Command="{Binding OpenFolderInExplorerCommand}" ToolTip="Open folder in explorer" Width="24" Height="24" Margin="4,0,0,0">
+                <Image Source="/Images/9069532_layout_three_icon.png" Width="16" Height="16" />
+            </Button>
+            <Label Grid.Row="3" Grid.Column="3" Content="{Binding Path}" Padding="4"/>
 
             <Label Grid.Row="4" Grid.Column="0" Content="Touched:" VerticalAlignment="Top" Padding="4" Visibility="{Binding HasTouchedAttribute, Converter={converter:BoolToVisibilityConverter}}"/>
-            <Label Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" Content="{Binding Touched}" Padding="4" Visibility="{Binding HasTouchedAttribute, Converter={converter:BoolToVisibilityConverter}}"/>
+            <Label Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3" Content="{Binding Touched}" Padding="4" Visibility="{Binding HasTouchedAttribute, Converter={converter:BoolToVisibilityConverter}}"/>
 
             <Label Grid.Row="5" Grid.Column="0" Content="Duplicates:" VerticalAlignment="Top" Padding="4"/>
-            <ScrollViewer Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+            <ScrollViewer Grid.Row="5" Grid.Column="1" Grid.ColumnSpan="3" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
                 <ItemsControl
                     ItemsSource="{Binding Duplicates}"
                     Padding="4"
@@ -52,13 +56,21 @@
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="Auto"/>
                                     <ColumnDefinition Width="*"/>
                                 </Grid.ColumnDefinitions>
 
-                                <Button Grid.Column="0" Command="{Binding CopyPathToClipboardCommand}" ToolTip="Copy path to clipboard" Width="24" Height="24">
+                                <Button Grid.Column="0" Command="{Binding CopyPathToClipboardCommand}" ToolTip="Copy path to clipboard" Width="24" Height="24" Style="{StaticResource DefaultButtonStyle}" Margin="0,0,4,0">
                                     <Image Source="/Images/9069845_copy_icon.png" Width="16" Height="16" />
                                 </Button>
-                                <Label Grid.Column="1" Content="{Binding Path}" Padding="4"/>
+                                <Button Grid.Column="1" Command="{Binding GoToCopyCommand}" ToolTip="Navigate to folder" Width="24" Height="24" Style="{StaticResource DefaultButtonStyle}" Margin="0,0,4,0">
+                                    <Image Source="/Images/9068740_upload_three_icon.png" Width="16" Height="16" />
+                                </Button>
+                                <Button Grid.Column="2" Command="{Binding OpenFolderInExplorerCommand}" ToolTip="Open folder in explorer" Width="24" Height="24" Style="{StaticResource DefaultButtonStyle}" Margin="0,0,4,0">
+                                    <Image Source="/Images/9069532_layout_three_icon.png" Width="16" Height="16" />
+                                </Button>
+                                <Label Grid.Column="3" Content="{Binding Path}" Padding="4"/>
                             </Grid>
                         </DataTemplate>
                     </ItemsControl.ItemTemplate>

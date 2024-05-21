@@ -66,14 +66,24 @@ public class MirrorTreeViewItemViewModel : BindableBase
     }
 
     /// <summary>
-    /// Gets a value indicating whether all subfolders and files inside the folder are duplicates.
+    /// Gets a value indicating whether the entire folder has another copy of it somewhere else..
     /// </summary>
-    public bool AllFilesAreDuplicates => _folder.IsDuplicate == FolderDuplicationLevel.HashIdenticalToOtherFolder;
+    public bool IsHashIdentical => _folder.IsDuplicate == FolderDuplicationLevel.HashIdenticalToOtherFolder;
 
     /// <summary>
     /// Gets a value indicating whether the folder contains duplicates.
     /// </summary>
     public bool ContainsDuplicates => _folder.IsDuplicate == FolderDuplicationLevel.ContainsDuplicates;
+
+    /// <summary>
+    /// Gets a value indicating whether this folder does not contain any duplicate fiels.
+    /// </summary>
+    public bool IsUnique => !IsHashIdentical && !ContainsDuplicates;
+
+    /// <summary>
+    /// Gets the folder duplication level of this folder.
+    /// </summary>
+    public FolderDuplicationLevel DuplicationLevel => _folder.IsDuplicate;
 
     /// <summary>
     /// Gets the children of this item.

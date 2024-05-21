@@ -22,7 +22,7 @@ public class MirrorFolderDetailsViewModel : FolderDetailsViewModelBase
     public MirrorFolderDetailsViewModel(
         ISelectedFolderService selectedFolderService,
         IProjectManager projectManager)
-        : base(projectManager)
+        : base(selectedFolderService, projectManager)
     {
         _selectedFolderService = selectedFolderService;
 

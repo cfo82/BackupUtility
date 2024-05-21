@@ -7,15 +7,15 @@
              mc:Ignorable="d" 
              d:DesignHeight="450"
              d:DesignWidth="800">
-    <UserControl.Resources>
-        <converter:DuplicatesBrushColorConverter x:Key="DuplicatesBrushColorConverter"/>
-    </UserControl.Resources>
-    
     <Grid>
-        <ListView ItemsSource="{Binding Files}" SelectedItem="{Binding SelectedFile, Mode=TwoWay}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <ListView ItemsSource="{Binding Files}" SelectedItem="{Binding SelectedFile, Mode=TwoWay}" d:ItemsSource="{d:SampleData ItemCount=5}" SelectionMode="Single">
             <ListView.ItemContainerStyle>
-                <Style TargetType="ListViewItem">
-                    <Setter Property="Background" Value="{Binding IsDuplicate, Converter={StaticResource DuplicatesBrushColorConverter}}"/>
+                <Style TargetType="ListViewItem" BasedOn="{StaticResource DefaultListViewItemStyle}">
+                    <Setter Property="Background" Value="{Binding IsDuplicate, Converter={converter:DuplicatesBrushColorConverter}}"/>
                 </Style>
             </ListView.ItemContainerStyle>
             <ListView.View>

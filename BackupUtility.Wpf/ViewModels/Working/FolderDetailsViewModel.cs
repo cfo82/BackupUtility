@@ -22,7 +22,7 @@ public class FolderDetailsViewModel : FolderDetailsViewModelBase
     public FolderDetailsViewModel(
         ISelectedFolderService selectedFolderService,
         IProjectManager projectManager)
-        : base(projectManager)
+        : base(selectedFolderService, projectManager)
     {
         _selectedFolderService = selectedFolderService;
 

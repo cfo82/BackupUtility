@@ -395,3 +395,4 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+.nuke/build.schema.json

@@ -5,6 +5,7 @@
 		<TargetFramework>net8.0-windows</TargetFramework>
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
+        <RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<RootNamespace>BackupUtilities.Wpf</RootNamespace>
 		<ApplicationIcon>Images\database_download_icon.ico</ApplicationIcon>
 	</PropertyGroup>

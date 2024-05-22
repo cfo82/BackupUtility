@@ -1,0 +1,9 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+	<Fragment>
+		<StandardDirectory Id="ProgramFiles64Folder">
+			<Directory Name="!(bind.Property.Manufacturer)" Id="CFOPRODUCTS">
+				<Directory Name="!(bind.Property.ProductName)" Id="INSTALLFOLDER" />
+			</Directory>
+		</StandardDirectory>
+	</Fragment>
+</Wix>

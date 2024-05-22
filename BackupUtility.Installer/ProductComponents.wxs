@@ -1,0 +1,10 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+	<Fragment>
+		<ComponentGroup Id="ProductComponents" Directory="INSTALLFOLDER">
+			<Component Id="ProductComponents" Guid="4855A85F-4BBF-4AA6-947B-D94DA65F56AF" Bitness="always64">
+				<CreateFolder />
+				<File Id="BackupUtility.Wpf.exe" Source="$(var.BasePath)\BackupUtility.Wpf.exe" />
+			</Component>
+		</ComponentGroup>
+	</Fragment>
+</Wix>

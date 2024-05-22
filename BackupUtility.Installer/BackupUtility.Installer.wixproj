@@ -1,0 +1,30 @@
+﻿<Project Sdk="WixToolset.Sdk/5.0.0">
+  <PropertyGroup>
+    <InstallerPlatform>x64</InstallerPlatform>
+    <HarvestDirectoryAutogenerateGuids>false</HarvestDirectoryAutogenerateGuids>
+    <HarvestDirectorySuppressFragments>true</HarvestDirectorySuppressFragments>
+    <HarvestDirectoryGenerateGuidsNow>true</HarvestDirectoryGenerateGuidsNow>
+    <Configurations>Release</Configurations>
+    <Platforms>x86</Platforms>
+    <DiskUtilityBasePath>$(SolutionDir)\.nuke\Artifacts\Publish</DiskUtilityBasePath>
+    <DefineConstants>BasePath=$(DiskUtilityBasePath)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <HarvestDirectory Include="$(DiskUtilityBasePath)">
+      <ComponentGroupName>PublishedFiles</ComponentGroupName>
+      <DirectoryRefId>INSTALLFOLDER</DirectoryRefId>
+      <PreprocessorVariable>var.BasePath</PreprocessorVariable>
+      <SuppressCom>true</SuppressCom>
+      <SuppressRegistry>true</SuppressRegistry>
+      <SuppressRootDirectory>true</SuppressRootDirectory>
+      <Transforms>ExcludeFiles.xslt</Transforms>
+    </HarvestDirectory>
+    <BindPath Include="$(DiskUtilityBasePath)" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="ExcludeFiles.xslt" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="WixToolset.Heat" Version="5.0.0" />
+  </ItemGroup>
+</Project>

@@ -1,0 +1,73 @@
+# Bugs auf dem ältesten Branch fixen auf dem sie gefixt werden sollen. Danach forward-merge über alle releases bis
+# zum master branch
+
+next-version: 1.0
+mode: ContinuousDeployment
+assembly-file-versioning-format: '{Major}.{Minor}.{Patch}.{env:BUILD_NUMBER}'
+update-build-number: false
+branches:
+  main:
+    mode: ContinuousDeployment
+    tag: 'alpha'
+    increment: Minor
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    regex: ^master$
+    source-branches: [ ]
+    is-source-branch-for: [ 'release-rc', 'feature', 'pull-request' ]
+    tracks-release-branches: true
+    is-release-branch: false
+    is-mainline: true
+    pre-release-weight: 55000
+  release:
+    mode: ContinuousDeployment
+    tag: ''
+    increment: None
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    regex: ^release/.*[^-rc]$
+    source-branches: [ 'release-rc' ]
+    tracks-release-branches: false
+    is-release-branch: true
+    is-mainline: false
+    pre-release-weight: 30000
+  release-rc:
+    mode: ContinuousDeployment
+    tag: 'rc'
+    increment: None
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    regex: ^release/.*-rc$
+    source-branches: [ 'main' ]
+    tracks-release-branches: true
+    is-release-branch: true
+    is-mainline: false
+    pre-release-weight: 30000
+  feature:
+    mode: ContinuousDeployment
+    tag: useBranchName
+    increment: Patch
+    prevent-increment-of-merged-branch-version: true
+    track-merge-target: false
+    regex: ^(feature|bugfix|refactoring)/.*$
+    source-branches: [ 'main', 'release-rc' ]
+    tracks-release-branches: false
+    is-release-branch: false
+    is-mainline: false
+    pre-release-weight: 30000
+  pull-request:
+    mode: ContinuousDeployment
+    tag: PullRequest
+    increment: Patch
+    prevent-increment-of-merged-branch-version: true
+    tag-number-pattern: '[/-](?<number>\d+)'
+    track-merge-target: false
+    regex: ^(refs/pull/)(\d+)(/merge)$
+    source-branches: [ 'main', 'release-rc' ]
+    tracks-release-branches: false
+    is-release-branch: false
+    is-mainline: false
+    pre-release-weight: 30000
+ignore:
+  sha: []
+merge-message-formats: {}

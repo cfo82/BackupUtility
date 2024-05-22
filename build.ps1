@@ -27,6 +27,8 @@ $env:DOTNET_NOLOGO = 1
 # EXECUTION
 ###########################################################################
 
+if ($null -eq $env:BUILD_NUMBER) { $env:BUILD_NUMBER = '0' }
+
 function ExecSafe([scriptblock] $cmd) {
     & $cmd
     if ($LASTEXITCODE) { exit $LASTEXITCODE }

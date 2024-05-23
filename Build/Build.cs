@@ -6,6 +6,7 @@ using Nuke.Common.ProjectModel;
 using Nuke.Common.Tools.Coverlet;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.GitVersion;
+using Nuke.Common.Tools.ReportGenerator;
 using Nuke.Common.Utilities.Collections;
 using Serilog;
 
@@ -30,6 +31,9 @@ class Build : NukeBuild
 
     [Parameter]
     AbsolutePath TestResultDirectory = RootDirectory + "/.nuke/Artifacts/Test-Results/";
+
+    [Parameter]
+    AbsolutePath CoverageReportDirectory = RootDirectory + "/.nuke/Artifacts/Coverage-Report/";
 
     [Parameter]
     AbsolutePath PublishDirectory = RootDirectory + "/.nuke/Artifacts/Publish/";
@@ -74,6 +78,7 @@ class Build : NukeBuild
         {
             InstallerDirectory.CreateOrCleanDirectory();
             TestResultDirectory.CreateOrCleanDirectory();
+            CoverageReportDirectory.CreateOrCleanDirectory();
             PublishDirectory.CreateOrCleanDirectory();
 
             Log.Information($"Build dir {BuildDirectory}");
@@ -130,6 +135,10 @@ class Build : NukeBuild
                 .SetNoBuild(true)
                 .SetResultsDirectory(TestResultDirectory)
                 .EnableCollectCoverage());
+
+            ReportGeneratorTasks.ReportGenerator(_ => _
+                .SetReports(RootDirectory / "*/TestResults/coverage.cobertura.xml")
+                .SetTargetDirectory(CoverageReportDirectory));
         });
 
     Target Publish => _ => _

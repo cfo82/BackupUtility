@@ -31,5 +31,12 @@ jobs:
 
         - uses: actions/upload-artifact@v4
           with:
-            name: installer
-            path: .nuke/Artifacts/Installer/*
+            name: Installer Package
+            path: .nuke/Artifacts/Installer
+
+        - uses: actions/upload-artifact@v4
+          with:
+            name: Coverage Report
+            path: .nuke/Artifacts/Coverage-Report
+            compression-level: 9
+

@@ -31,4 +31,9 @@ public interface IProjectManager
     /// <param name="projectPath">The absolute path to the project.</param>
     /// <returns>The newly created project.</returns>
     Task<IBackupProject?> CreateProjectAsync(string projectPath);
+
+    /// <summary>
+    /// Closes the currently opened project.
+    /// </summary>
+    void CloseProject();
 }

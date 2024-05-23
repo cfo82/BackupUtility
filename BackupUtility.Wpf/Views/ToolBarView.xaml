@@ -14,6 +14,9 @@
             <Button Command="{Binding CreateCommand}" ToolTip="Create a new database" Style="{StaticResource DefaultButtonStyle}" BorderBrush="Transparent" Background="Transparent">
                 <Image Source="/Images/9069093_doc_add_icon.png" Width="32" Height="32" />
             </Button>
+            <Button Command="{Binding CloseCommand}" ToolTip="Close the database" Style="{StaticResource DefaultButtonStyle}" BorderBrush="Transparent" Background="Transparent" IsEnabled="{Binding IsProjectOpened}">
+                <Image Source="/Images/9069671_close_one_icon.png" Width="32" Height="32" />
+            </Button>
         </ToolBar>
     </Grid>
 </UserControl>

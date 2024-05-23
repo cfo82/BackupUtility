@@ -15,24 +15,30 @@ using Prism.Mvvm;
 public class ToolBarViewModel : BindableBase
 {
     private readonly ILogger<ToolBarViewModel> _logger;
+    private readonly IErrorHandler _errorHandler;
     private readonly IProjectManager _projectManager;
     private IBackupProject? _currentProject;
     private bool _isReady = false;
+    private bool _isProjectOpened;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ToolBarViewModel"/> class.
     /// </summary>
     /// <param name="logger">The logger to use.</param>
+    /// <param name="errorHandler">The error handler.</param>
     /// <param name="projectManager">The project manager.</param>
     public ToolBarViewModel(
         ILogger<ToolBarViewModel> logger,
+        IErrorHandler errorHandler,
         IProjectManager projectManager)
     {
         _logger = logger;
+        _errorHandler = errorHandler;
         _projectManager = projectManager;
 
         OpenCommand = new DelegateCommand(OnOpen);
         CreateCommand = new DelegateCommand(OnCreate);
+        CloseCommand = new DelegateCommand(OnClose);
 
         _projectManager.CurrentProjectChanged += OnCurrentProjectChanged;
         OnCurrentProjectChanged(null, EventArgs.Empty);
@@ -47,6 +53,20 @@ public class ToolBarViewModel : BindableBase
     /// Gets a command to create a new backup project.
     /// </summary>
     public ICommand CreateCommand { get; private set; }
+
+    /// <summary>
+    /// Gets a command to close the currently open project.
+    /// </summary>
+    public ICommand CloseCommand { get; private set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether a project is currently opened.
+    /// </summary>
+    public bool IsProjectOpened
+    {
+        get { return _isProjectOpened; }
+        set { SetProperty(ref _isProjectOpened, value); }
+    }
 
     /// <summary>
     /// Gets or sets a value indicating whether the project is ready to be run.
@@ -65,6 +85,7 @@ public class ToolBarViewModel : BindableBase
         }
 
         _currentProject = _projectManager.CurrentProject;
+        IsProjectOpened = _currentProject != null;
 
         if (_currentProject != null)
         {
@@ -120,6 +141,18 @@ public class ToolBarViewModel : BindableBase
         catch (Exception e)
         {
             _logger.LogError(e, "Error while creating the database.");
+        }
+    }
+
+    private void OnClose()
+    {
+        try
+        {
+            _projectManager.CloseProject();
+        }
+        catch (Exception e)
+        {
+            _errorHandler.Error = e;
         }
     }
 }

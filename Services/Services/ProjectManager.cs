@@ -35,6 +35,7 @@ public class ProjectManager : IProjectManager
         {
             if (_currentProject != value)
             {
+                _currentProject?.Dispose();
                 _currentProject = value;
                 CurrentProjectChanged?.Invoke(this, new EventArgs());
             }
@@ -52,6 +53,11 @@ public class ProjectManager : IProjectManager
         if (!File.Exists(projectPath))
         {
             throw new ArgumentException("The argument must point to an existing project file.", nameof(projectPath));
+        }
+
+        if (CurrentProject != null)
+        {
+            CloseProject();
         }
 
         var data = new DbContextData(projectPath);
@@ -76,6 +82,11 @@ public class ProjectManager : IProjectManager
             throw new ArgumentException("Cannot overwrite existing files.", nameof(projectPath));
         }
 
+        if (CurrentProject != null)
+        {
+            CloseProject();
+        }
+
         var data = new DbContextData(projectPath);
 
         await data.InitAsync();
@@ -83,5 +94,16 @@ public class ProjectManager : IProjectManager
         CurrentProject = await BackupProject.CreateBackupProjectAsync(data);
 
         return CurrentProject;
+    }
+
+    /// <inheritdoc />
+    public void CloseProject()
+    {
+        if (CurrentProject == null)
+        {
+            throw new InvalidOperationException("There is no project opened at the moment.");
+        }
+
+        CurrentProject = null;
     }
 }

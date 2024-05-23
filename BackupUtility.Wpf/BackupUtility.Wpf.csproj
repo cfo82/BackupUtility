@@ -59,6 +59,7 @@
         <Resource Include="Images\9069720_full.png" />
         <Resource Include="Images\9068740_upload_three_icon.png" />
         <Resource Include="Images\9069532_layout_three_icon.png" />
+        <Resource Include="Images\9069671_close_one_icon.png" />
     </ItemGroup>
 
 	<ItemGroup>

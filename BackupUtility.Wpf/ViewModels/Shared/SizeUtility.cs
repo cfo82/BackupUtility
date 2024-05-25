@@ -37,4 +37,35 @@ public static class SizeUtility
 
         return $"{bytesString} Bytes";
     }
+
+    /// <summary>
+    /// Converts the given size into a short size string displayed on the UI.
+    /// </summary>
+    /// <param name="size">The size to convert.</param>
+    /// <returns>The string to display on the UI.</returns>
+    public static string ToShortFileSizeString(this long size)
+    {
+        var bytesString = size.ToString("N0", CultureInfo.CurrentCulture);
+
+        var kilobytes = size / 1024;
+        var megabytes = kilobytes / 1024;
+        var gigabytes = megabytes / 1024;
+
+        if (gigabytes > 0)
+        {
+            return $"{gigabytes} GB";
+        }
+
+        if (megabytes > 0)
+        {
+            return $"{megabytes} MB";
+        }
+
+        if (kilobytes > 0)
+        {
+            return $"{kilobytes} KB";
+        }
+
+        return $"{bytesString} Bytes";
+    }
 }

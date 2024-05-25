@@ -34,6 +34,11 @@ public class FolderDetailsViewModel : FolderDetailsViewModelBase
     /// </summary>
     public bool HasTouchedAttribute => true;
 
+    /// <summary>
+    /// Gets a value indicating whether this view model should display folder size data.
+    /// </summary>
+    public bool HasFolderSizeData => true;
+
     private async void OnSelectedFolderChanged(object? sender, EventArgs e)
     {
         try

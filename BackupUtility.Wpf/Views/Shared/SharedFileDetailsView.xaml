@@ -6,62 +6,64 @@
              xmlns:converter="clr-namespace:BackupUtilities.Wpf.Converter"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
-    <GroupBox Header="Datei-Eigenschaften" Margin="4">
-        <Grid>
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
+    <TabControl>
+        <TabItem Header="Datei-Eigenschaften">
+            <Grid Margin="4">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
 
-            <Label Grid.Row="0" Grid.Column="0" Content="Parent Id:" VerticalAlignment="Top" Padding="4"/>
-            <Label Grid.Row="0" Grid.Column="1" Content="{Binding ParentId}" Padding="4"/>
+                <Label Grid.Row="0" Grid.Column="0" Content="Parent Id:" VerticalAlignment="Top" Padding="4"/>
+                <Label Grid.Row="0" Grid.Column="1" Content="{Binding ParentId}" Padding="4"/>
 
-            <Label Grid.Row="1" Grid.Column="0" Content="Name:" VerticalAlignment="Top" Padding="4"/>
-            <Label Grid.Row="1" Grid.Column="1" Content="{Binding Name}" Padding="4"/>
+                <Label Grid.Row="1" Grid.Column="0" Content="Name:" VerticalAlignment="Top" Padding="4"/>
+                <Label Grid.Row="1" Grid.Column="1" Content="{Binding Name}" Padding="4"/>
 
-            <Label Grid.Row="2" Grid.Column="0" Content="Size:" VerticalAlignment="Top" Padding="4"/>
-            <Label Grid.Row="2" Grid.Column="1" Content="{Binding Size}" Padding="4"/>
+                <Label Grid.Row="2" Grid.Column="0" Content="Size:" VerticalAlignment="Top" Padding="4"/>
+                <Label Grid.Row="2" Grid.Column="1" Content="{Binding Size}" Padding="4"/>
 
-            <Label Grid.Row="3" Grid.Column="0" Content="Hash:" VerticalAlignment="Top" Padding="4"/>
-            <Label Grid.Row="3" Grid.Column="1" Content="{Binding Hash}" Padding="4"/>
+                <Label Grid.Row="3" Grid.Column="0" Content="Hash:" VerticalAlignment="Top" Padding="4"/>
+                <Label Grid.Row="3" Grid.Column="1" Content="{Binding Hash}" Padding="4"/>
 
-            <Label Grid.Row="4" Grid.Column="0" Content="Touched:" VerticalAlignment="Top" Padding="4" Visibility="{Binding HasTouchedAttribute, Converter={converter:BoolToVisibilityConverter}}"/>
-            <Label Grid.Row="4" Grid.Column="1" Content="{Binding Touched}" Padding="4" Visibility="{Binding HasTouchedAttribute, Converter={converter:BoolToVisibilityConverter}}"/>
+                <Label Grid.Row="4" Grid.Column="0" Content="Touched:" VerticalAlignment="Top" Padding="4" Visibility="{Binding HasTouchedAttribute, Converter={converter:BoolToVisibilityConverter}}"/>
+                <Label Grid.Row="4" Grid.Column="1" Content="{Binding Touched}" Padding="4" Visibility="{Binding HasTouchedAttribute, Converter={converter:BoolToVisibilityConverter}}"/>
 
-            <Label Grid.Row="5" Grid.Column="0" Content="Duplicates:" VerticalAlignment="Top" Padding="4"/>
-            <ScrollViewer Grid.Row="5" Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
-                <ItemsControl
+                <Label Grid.Row="5" Grid.Column="0" Content="Duplicates:" VerticalAlignment="Top" Padding="4"/>
+                <ScrollViewer Grid.Row="5" Grid.Column="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Auto">
+                    <ItemsControl
                     ItemsSource="{Binding Duplicates}"
                     Padding="4"
                     BorderBrush="Transparent">
-                    <ItemsControl.ItemTemplate>
-                        <DataTemplate>
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="Auto"/>
-                                    <ColumnDefinition Width="*"/>
-                                </Grid.ColumnDefinitions>
-                                <Button Grid.Column="0" Command="{Binding CopyFolderPathToClipboardCommand}" ToolTip="Copy folder path to clipboard" Width="24" Height="24" Margin="0,0,4,0" Style="{StaticResource DefaultButtonStyle}">
-                                    <Image Source="/Images/9069845_copy_icon.png" Width="16" Height="16" />
-                                </Button>
-                                <Button Grid.Column="1" Command="{Binding CopyFilePathToClipboardCommand}" ToolTip="Copy file path to clipboard" Width="24" Height="24" Style="{StaticResource DefaultButtonStyle}">
-                                    <Image Source="/Images/9070812_copy_one_icon.png" Width="16" Height="16" />
-                                </Button>
-                                <Label Grid.Column="2" Content="{Binding FilePath}" Padding="4"/>
-                            </Grid>
-                        </DataTemplate>
-                    </ItemsControl.ItemTemplate>
-                </ItemsControl>
-            </ScrollViewer>
-        </Grid>
-    </GroupBox>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="Auto"/>
+                                        <ColumnDefinition Width="*"/>
+                                    </Grid.ColumnDefinitions>
+                                    <Button Grid.Column="0" Command="{Binding CopyFolderPathToClipboardCommand}" ToolTip="Copy folder path to clipboard" Width="24" Height="24" Margin="0,0,4,0" Style="{StaticResource DefaultButtonStyle}">
+                                        <Image Source="/Images/9069845_copy_icon.png" Width="16" Height="16" />
+                                    </Button>
+                                    <Button Grid.Column="1" Command="{Binding CopyFilePathToClipboardCommand}" ToolTip="Copy file path to clipboard" Width="24" Height="24" Style="{StaticResource DefaultButtonStyle}">
+                                        <Image Source="/Images/9070812_copy_one_icon.png" Width="16" Height="16" />
+                                    </Button>
+                                    <Label Grid.Column="2" Content="{Binding FilePath}" Padding="4"/>
+                                </Grid>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </TabItem>
+    </TabControl>
 </UserControl>

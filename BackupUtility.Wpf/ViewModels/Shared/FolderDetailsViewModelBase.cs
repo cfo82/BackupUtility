@@ -1,7 +1,9 @@
 namespace BackupUtilities.Wpf.ViewModels.Shared;
 
+using System;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -9,8 +11,13 @@ using BackupUtilities.Data.Interfaces;
 using BackupUtilities.Services.Interfaces;
 using BackupUtilities.Wpf.Contracts;
 using BackupUtilities.Wpf.Views.Shared;
+using LiveChartsCore;
+using LiveChartsCore.Measure;
+using LiveChartsCore.SkiaSharpView;
+using LiveChartsCore.SkiaSharpView.Painting;
 using Prism.Commands;
 using Prism.Mvvm;
+using SkiaSharp;
 
 /// <summary>
 /// Base class for the view models related with <see cref="SharedFolderDetailsView"/>.
@@ -20,6 +27,8 @@ public class FolderDetailsViewModelBase : BindableBase
     private readonly IProjectManager _projectManager;
     private readonly ISelectedFolderService _selectedFolderService;
     private Folder? _selectedFolder;
+    private ISeries[] _folderSizeSeries;
+    private LegendPosition _folderSizeLegendPosition;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FolderDetailsViewModelBase"/> class.
@@ -32,12 +41,24 @@ public class FolderDetailsViewModelBase : BindableBase
     {
         _selectedFolderService = selectedFolderService;
         _projectManager = projectManager;
+        _folderSizeSeries = new ISeries[0];
+        _folderSizeLegendPosition = LegendPosition.Hidden;
 
         Path = string.Empty;
         Duplicates = new();
         CopyPathToClipboardCommand = new DelegateCommand(OnCopyPathToClipboard);
         OpenFolderInExplorerCommand = new DelegateCommand(OnOpenFolderInExplorer);
     }
+
+    /// <summary>
+    /// Gets the data for the folder size pie chart.
+    /// </summary>
+    public ISeries[] FolderSizeSeries => _folderSizeSeries;
+
+    /// <summary>
+    /// Gets the position where the legend for the folder size pie chart should be positioned.
+    /// </summary>
+    public LegendPosition FolderSizeLegendPosition => _folderSizeLegendPosition;
 
     /// <summary>
     /// Gets the id of the currently selected folder.
@@ -128,6 +149,7 @@ public class FolderDetailsViewModelBase : BindableBase
         Duplicates.Clear();
 
         _selectedFolder = selectedFolder;
+        _folderSizeSeries = new ISeries[0];
 
         if (_selectedFolder != null)
         {
@@ -141,9 +163,36 @@ public class FolderDetailsViewModelBase : BindableBase
                 fullPath = await folderRepository.GetFullPathForFolderAsync(duplicate);
                 Duplicates.Add(new DuplicateFolderViewModel(_selectedFolderService, duplicate, System.IO.Path.Join(fullPath.Select(f => f.Name).ToArray())));
             }
+
+            var subFolders = await folderRepository.GetSubFoldersAsync(_selectedFolder);
+            var totalSize = subFolders.Sum(f => f.Size);
+            _folderSizeSeries = subFolders.Select(s => CreatePieSeries(s, totalSize)).ToArray();
+            _folderSizeLegendPosition = subFolders.Count() <= 10 ? LegendPosition.Right : LegendPosition.Hidden;
         }
 
         RaisePropertyChanged(string.Empty);
+    }
+
+    private PieSeries<double> CreatePieSeries(Folder folder, long totalSize)
+    {
+        var pieSeries = new PieSeries<double>()
+        {
+            Values = new double[] { folder.Size },
+            Name = folder.Name,
+            HoverPushout = 12,
+        };
+
+        if ((double)folder.Size / totalSize > 0.15)
+        {
+            pieSeries.DataLabelsPaint = new SolidColorPaint(SKColors.Black);
+            pieSeries.DataLabelsSize = 12;
+            pieSeries.DataLabelsPosition = LiveChartsCore.Measure.PolarLabelsPosition.Middle;
+            pieSeries.DataLabelsFormatter = point => folder.Name;
+        }
+
+        pieSeries.ToolTipLabelFormatter = point => folder.Size.ToShortFileSizeString();
+
+        return pieSeries;
     }
 
     private void OnCopyPathToClipboard()

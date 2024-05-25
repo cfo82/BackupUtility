@@ -34,6 +34,11 @@ public class MirrorFolderDetailsViewModel : FolderDetailsViewModelBase
     /// </summary>
     public bool HasTouchedAttribute => false;
 
+    /// <summary>
+    /// Gets a value indicating whether this view model should display folder size data.
+    /// </summary>
+    public bool HasFolderSizeData => false;
+
     private async void OnSelectedMirrorFolderChanged(object? sender, EventArgs e)
     {
         try

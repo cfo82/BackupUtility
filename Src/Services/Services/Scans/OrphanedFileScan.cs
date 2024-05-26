@@ -17,21 +17,25 @@ using Microsoft.Extensions.Logging;
 public class OrphanedFileScan : ScanOperationBase, IOrphanedFileScan
 {
     private readonly ILogger<OrphanedFileScan> _logger;
+    private readonly IFileSystemService _fileSystemService;
     private readonly IScanStatus _scanStatus;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="OrphanedFileScan"/> class.
     /// </summary>
     /// <param name="logger">A new logger instance to be used.</param>
+    /// <param name="fileSystemService">The file system access.</param>
     /// <param name="projectManager">The project manager.</param>
     /// <param name="longRunningOperationManager">The long running operation manager.</param>
     public OrphanedFileScan(
         ILogger<OrphanedFileScan> logger,
+        IFileSystemService fileSystemService,
         IProjectManager projectManager,
         IScanStatusManager longRunningOperationManager)
         : base(projectManager)
     {
         _logger = logger;
+        _fileSystemService = fileSystemService;
         _scanStatus = longRunningOperationManager.FullScanStatus.OrphanedFileScanStatus;
     }
 
@@ -98,7 +102,7 @@ public class OrphanedFileScan : ScanOperationBase, IOrphanedFileScan
         _logger.LogInformation(status);
         await _scanStatus.UpdateAsync(status, null);
 
-        foreach (var subDirectory in Directory.GetDirectories(mirrorPath))
+        foreach (var subDirectory in _fileSystemService.GetDirectories(mirrorPath))
         {
             await EnumerateOrphanedFilesRecursiveAsync(
                 connection,
@@ -109,8 +113,8 @@ public class OrphanedFileScan : ScanOperationBase, IOrphanedFileScan
                 settings);
         }
 
-        var files = Directory.GetFiles(mirrorPath);
-        if (files.Length > 0)
+        var files = _fileSystemService.GetFiles(mirrorPath);
+        if (files.Any())
         {
             foreach (var file in files)
             {
@@ -129,7 +133,7 @@ public class OrphanedFileScan : ScanOperationBase, IOrphanedFileScan
         string mirrorFilePath,
         string workingFilePath)
     {
-        if (!System.IO.File.Exists(workingFilePath))
+        if (!_fileSystemService.FileExists(workingFilePath))
         {
             _logger.LogError("Discovered orphaned file {EndangeredFile}.", mirrorFilePath);
 
@@ -172,7 +176,7 @@ public class OrphanedFileScan : ScanOperationBase, IOrphanedFileScan
 
     private string ComputeChecksum(string file)
     {
-        using var stream = new BufferedStream(System.IO.File.OpenRead(file), 1200000);
+        using var stream = new BufferedStream(_fileSystemService.OpenFileToRead(file), 1200000);
         using var sha = SHA512.Create();
         byte[] checksum = sha.ComputeHash(stream);
         var fullHash = BitConverter.ToString(checksum).Replace("-", string.Empty).ToLower();

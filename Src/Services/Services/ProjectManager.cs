@@ -11,13 +11,17 @@ using BackupUtilities.Services.Interfaces;
 /// </summary>
 public class ProjectManager : IProjectManager
 {
+    private readonly IFileSystemService _fileSystemService;
     private IBackupProject? _currentProject;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="ProjectManager"/> class.
     /// </summary>
-    public ProjectManager()
+    /// <param name="fileSystemService">The file system access.</param>
+    public ProjectManager(
+        IFileSystemService fileSystemService)
     {
+        _fileSystemService = fileSystemService;
     }
 
     /// <inheritdoc />
@@ -50,7 +54,7 @@ public class ProjectManager : IProjectManager
             throw new ArgumentException("The argument must be an absolute path.", nameof(projectPath));
         }
 
-        if (!File.Exists(projectPath))
+        if (!_fileSystemService.FileExists(projectPath))
         {
             throw new ArgumentException("The argument must point to an existing project file.", nameof(projectPath));
         }
@@ -77,7 +81,7 @@ public class ProjectManager : IProjectManager
             throw new ArgumentException("The argument must be an absolute path.", nameof(projectPath));
         }
 
-        if (File.Exists(projectPath))
+        if (_fileSystemService.FileExists(projectPath))
         {
             throw new ArgumentException("Cannot overwrite existing files.", nameof(projectPath));
         }

@@ -18,21 +18,25 @@ using Microsoft.Extensions.Logging;
 public class FileScan : ScanOperationBase, IFileScan
 {
     private readonly ILogger<FileScan> _logger;
+    private readonly IFileSystemService _fileSystemService;
     private readonly IFileScanStatus _scanStatus;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FileScan"/> class.
     /// </summary>
     /// <param name="logger">A new logger instance to be used.</param>
+    /// <param name="fileSystemService">The file system access.</param>
     /// <param name="projectManager">The project manager.</param>
     /// <param name="longRunningOperationManager">The long running operation manager.</param>
     public FileScan(
         ILogger<FileScan> logger,
+        IFileSystemService fileSystemService,
         IProjectManager projectManager,
         IScanStatusManager longRunningOperationManager)
         : base(projectManager)
     {
         _logger = logger;
+        _fileSystemService = fileSystemService;
         _scanStatus = longRunningOperationManager.FullScanStatus.FileScanStatus;
     }
 
@@ -150,7 +154,7 @@ public class FileScan : ScanOperationBase, IFileScan
                 continueLastScan);
         }
 
-        var files = Directory.GetFiles(path);
+        var files = _fileSystemService.GetFiles(path).ToArray();
         if (files.Length > 0)
         {
             using var transaction = connection.BeginTransaction();
@@ -238,7 +242,7 @@ public class FileScan : ScanOperationBase, IFileScan
 
     private (string IntroHash, string FullHash) ComputeChecksum(string file)
     {
-        using var stream = new BufferedStream(System.IO.File.OpenRead(file), 1200000);
+        using var stream = new BufferedStream(_fileSystemService.OpenFileToRead(file), 1200000);
         byte[] introBuffer = new byte[100 * 1024];
         int lengthRead = stream.Read(introBuffer, 0, introBuffer.Length);
         string introHash = string.Empty;

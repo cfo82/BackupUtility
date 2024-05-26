@@ -43,7 +43,8 @@ app.AddCommand(
         Console.WriteLine($"Ignore:   {string.Join(", ", ignore ?? Array.Empty<string>())}");
         Console.WriteLine();
 
-        var projectManager = new ProjectManager();
+        var fileSystemService = new FileSystemService();
+        var projectManager = new ProjectManager(fileSystemService);
         var project = await projectManager.OpenProjectAsync(databasePath);
         if (project == null)
         {
@@ -76,7 +77,8 @@ app.AddCommand(
         Console.WriteLine($"Database: {databasePath}");
         Console.WriteLine();
 
-        var projectManager = new ProjectManager();
+        var fileSystemService = new FileSystemService();
+        var projectManager = new ProjectManager(fileSystemService);
         var project = await projectManager.OpenProjectAsync(databasePath);
         var dispatcherService = new ConsoleDispatcherService();
         var scanStatusManager = new ScanStatusManager(dispatcherService);
@@ -85,6 +87,7 @@ app.AddCommand(
         logger.LogInformation("Enumerate Folders...");
         var enumerateFolders = new FolderScan(
             loggerFactory.CreateLogger<FolderScan>(),
+            fileSystemService,
             projectManager,
             scanStatusManager);
 
@@ -105,7 +108,8 @@ app.AddCommand(
         Console.WriteLine($"Database: {databasePath}");
         Console.WriteLine();
 
-        var projectManager = new ProjectManager();
+        var fileSystemService = new FileSystemService();
+        var projectManager = new ProjectManager(fileSystemService);
         var project = await projectManager.OpenProjectAsync(databasePath);
         var dispatcherService = new ConsoleDispatcherService();
         var scanStatusManager = new ScanStatusManager(dispatcherService);
@@ -114,6 +118,7 @@ app.AddCommand(
         logger.LogInformation("Enumerate Folders...");
         var enumerateFiles = new FileScan(
             loggerFactory.CreateLogger<FileScan>(),
+            fileSystemService,
             projectManager,
             scanStatusManager);
 
@@ -134,7 +139,8 @@ app.AddCommand(
         Console.WriteLine($"Database: {databasePath}");
         Console.WriteLine();
 
-        var projectManager = new ProjectManager();
+        var fileSystemService = new FileSystemService();
+        var projectManager = new ProjectManager(fileSystemService);
         var project = await projectManager.OpenProjectAsync(databasePath);
         var dispatcherService = new ConsoleDispatcherService();
         var scanStatusManager = new ScanStatusManager(dispatcherService);
@@ -163,7 +169,8 @@ app.AddCommand(
         Console.WriteLine($"Database: {databasePath}");
         Console.WriteLine();
 
-        var projectManager = new ProjectManager();
+        var fileSystemService = new FileSystemService();
+        var projectManager = new ProjectManager(fileSystemService);
         var project = await projectManager.OpenProjectAsync(databasePath);
         var dispatcherService = new ConsoleDispatcherService();
         var scanStatusManager = new ScanStatusManager(dispatcherService);
@@ -172,6 +179,7 @@ app.AddCommand(
         logger.LogInformation("Find orphaned files...");
         var orphanedFileEnumerator = new OrphanedFileScan(
             loggerFactory.CreateLogger<OrphanedFileScan>(),
+            fileSystemService,
             projectManager,
             scanStatusManager);
 
@@ -198,15 +206,16 @@ app.AddCommand(
         Console.WriteLine($"Ignore:   {string.Join(", ", ignore ?? Array.Empty<string>())}");
         Console.WriteLine();
 
-        var projectManager = new ProjectManager();
+        var fileSystemService = new FileSystemService();
+        var projectManager = new ProjectManager(fileSystemService);
         var project = await projectManager.OpenProjectAsync(databasePath);
         var dispatcherService = new ConsoleDispatcherService();
         var scanStatusManager = new ScanStatusManager(dispatcherService);
         var errorHandler = new ErrorHandler(loggerFactory.CreateLogger<ErrorHandler>());
-        var folderEnumerator = new FolderScan(loggerFactory.CreateLogger<FolderScan>(), projectManager, scanStatusManager);
-        var fileEnumerator = new FileScan(loggerFactory.CreateLogger<FileScan>(), projectManager, scanStatusManager);
+        var folderEnumerator = new FolderScan(loggerFactory.CreateLogger<FolderScan>(), fileSystemService, projectManager, scanStatusManager);
+        var fileEnumerator = new FileScan(loggerFactory.CreateLogger<FileScan>(), fileSystemService, projectManager, scanStatusManager);
         var duplicateFileAnalysis = new DuplicateFileAnalysis(loggerFactory.CreateLogger<DuplicateFileAnalysis>(), projectManager, scanStatusManager);
-        var orphanedFileEnumerator = new OrphanedFileScan(loggerFactory.CreateLogger<OrphanedFileScan>(), projectManager, scanStatusManager);
+        var orphanedFileEnumerator = new OrphanedFileScan(loggerFactory.CreateLogger<OrphanedFileScan>(), fileSystemService, projectManager, scanStatusManager);
         var completeScan = new CompleteScan(loggerFactory.CreateLogger<CompleteScan>(), projectManager, scanStatusManager, folderEnumerator, fileEnumerator, duplicateFileAnalysis, orphanedFileEnumerator);
         if (project == null)
         {

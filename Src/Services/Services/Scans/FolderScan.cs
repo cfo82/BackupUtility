@@ -14,21 +14,25 @@ using Microsoft.Extensions.Logging;
 public class FolderScan : ScanOperationBase, IFolderScan
 {
     private readonly ILogger<FolderScan> _logger;
+    private readonly IFileSystemService _fileSystemService;
     private readonly IScanStatus _scanStatus;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="FolderScan"/> class.
     /// </summary>
     /// <param name="logger">A new logger instance to be used.</param>
+    /// <param name="fileSystemService">The file system access.</param>
     /// <param name="projectManager">The project manager.</param>
     /// <param name="longRunningOperationManager">The long running operation manager.</param>
     public FolderScan(
         ILogger<FolderScan> logger,
+        IFileSystemService fileSystemService,
         IProjectManager projectManager,
         IScanStatusManager longRunningOperationManager)
         : base(projectManager)
     {
         _logger = logger;
+        _fileSystemService = fileSystemService;
         _scanStatus = longRunningOperationManager.FullScanStatus.FolderScanStatus;
     }
 
@@ -62,7 +66,7 @@ public class FolderScan : ScanOperationBase, IFolderScan
                     await folderRepository.TouchFolderAsync(folder);
                 }
 
-                foreach (var subDirectory in Directory.GetDirectories(rootPath))
+                foreach (var subDirectory in _fileSystemService.GetDirectories(rootPath))
                 {
                     await EnumerateFoldersRecursiveAsync(folderRepository, rootFolder, subDirectory, settings);
                 }
@@ -107,7 +111,7 @@ public class FolderScan : ScanOperationBase, IFolderScan
             await folderRepository.SaveFolderAsync(currentFolder);
         }
 
-        foreach (var subDirectory in Directory.GetDirectories(path))
+        foreach (var subDirectory in _fileSystemService.GetDirectories(path))
         {
             await EnumerateFoldersRecursiveAsync(folderRepository, currentFolder, subDirectory, settings);
         }

@@ -61,6 +61,7 @@ public partial class App : PrismApplication
         // Register Services
         containerRegistry.RegisterInstance<IConfiguration>(configuration);
         containerRegistry.RegisterInstance<ILoggerFactory>(loggerFactory);
+        containerRegistry.Register<IFileSystemService, FileSystemService>();
         containerRegistry.RegisterSingleton<ISelectedFolderService, SelectedFolderService>();
         containerRegistry.RegisterSingleton<ISelectedFileService, SelectedFileService>();
         containerRegistry.RegisterSingleton<IProjectManager, ProjectManager>();

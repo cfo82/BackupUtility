@@ -26,7 +26,7 @@ class Build : NukeBuild
 
     GitHubActions? GitHubActions => GitHubActions.Instance;
 
-    Project? InstallerProject => Solution?.Projects.FirstOrDefault(p => p.Name == "BackupUtility.Installer");
+    Project? InstallerProject => Solution?.AllProjects.FirstOrDefault(p => p.Name == "BackupUtility.Installer");
 
     AbsolutePath BuildDirectory => RootDirectory / "Build";
 
@@ -138,7 +138,7 @@ class Build : NukeBuild
                 .EnableCollectCoverage());
 
             ReportGeneratorTasks.ReportGenerator(_ => _
-                .SetReports(RootDirectory / "*/TestResults/coverage.cobertura.xml")
+                .SetReports(RootDirectory / "Src/*/TestResults/coverage.cobertura.xml")
                 .SetTargetDirectory(CoverageReportDirectory));
         });
 
@@ -147,7 +147,7 @@ class Build : NukeBuild
         .OnlyWhenDynamic(() => Configuration == Configuration.Release)
         .Executes(() =>
         {
-            var wpfProject = Solution?.Projects.FirstOrDefault(p => p.Name == "BackupUtility.Wpf");
+            var wpfProject = Solution?.AllProjects.FirstOrDefault(p => p.Name == "BackupUtility.Wpf");
             Assert.NotNull(wpfProject);
 
             DotNetTasks.DotNetPublish(_ => _
@@ -183,32 +183,13 @@ class Build : NukeBuild
                 .SetConfiguration(Configuration)
                 .SetVersion(GitVersion?.AssemblySemVer)
                 .SetAssemblyVersion(GitVersion?.AssemblySemVer)
-                .SetProperty("SolutionDir", EnsureTrailingSeparator(Solution?.Path.Parent)));
+                .SetProperty("SolutionDir", Solution?.Path.Parent));
 
-            var installerBinDir = RootDirectory / "BackupUtility.Installer" / "bin" / Configuration / "en-US";
+            var installerBinDir = RootDirectory / "Src" / "BackupUtility.Installer" / "bin" / Configuration / "en-US";
 
             Log.Information($"Copy installer files from {installerBinDir} to {InstallerDirectory}");
 
             System.IO.Directory.GetFiles(installerBinDir)
                 .ForEach(f => System.IO.File.Copy(f, System.IO.Path.Combine(InstallerDirectory, System.IO.Path.GetFileName(f))));
         });
-
-    private static AbsolutePath EnsureTrailingSeparator(string path)
-    {
-        path = path.TrimEnd();
-
-        if (Path.EndsInDirectorySeparator(path))
-        {
-            return path;
-        }
-
-        return path + GetDirectorySeparatorUsedInPath(path);
-    }
-
-    private static char GetDirectorySeparatorUsedInPath(string path)
-    {
-        return path.Contains(Path.AltDirectorySeparatorChar)
-            ? Path.AltDirectorySeparatorChar
-            : Path.DirectorySeparatorChar;
-    }
 }

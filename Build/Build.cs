@@ -1,3 +1,4 @@
+using System.IO;
 using System.Linq;
 using Nuke.Common;
 using Nuke.Common.CI.GitHubActions;
@@ -182,7 +183,7 @@ class Build : NukeBuild
                 .SetConfiguration(Configuration)
                 .SetVersion(GitVersion?.AssemblySemVer)
                 .SetAssemblyVersion(GitVersion?.AssemblySemVer)
-                .SetProperty("SolutionDir", Solution?.Path.Parent));
+                .SetProperty("SolutionDir", EnsureTrailingSeparator(Solution?.Path.Parent)));
 
             var installerBinDir = RootDirectory / "BackupUtility.Installer" / "bin" / Configuration / "en-US";
 
@@ -191,4 +192,23 @@ class Build : NukeBuild
             System.IO.Directory.GetFiles(installerBinDir)
                 .ForEach(f => System.IO.File.Copy(f, System.IO.Path.Combine(InstallerDirectory, System.IO.Path.GetFileName(f))));
         });
+
+    private static AbsolutePath EnsureTrailingSeparator(string path)
+    {
+        path = path.TrimEnd();
+
+        if (Path.EndsInDirectorySeparator(path))
+        {
+            return path;
+        }
+
+        return path + GetDirectorySeparatorUsedInPath(path);
+    }
+
+    private static char GetDirectorySeparatorUsedInPath(string path)
+    {
+        return path.Contains(Path.AltDirectorySeparatorChar)
+            ? Path.AltDirectorySeparatorChar
+            : Path.DirectorySeparatorChar;
+    }
 }

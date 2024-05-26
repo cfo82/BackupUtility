@@ -1,11 +1,39 @@
-﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
-	<Package Name="Disk Utility" Manufacturer="CFO" Version="!(bind.fileVersion.BackupUtility.Wpf.exe)" UpgradeCode="969e890d-7733-478e-9add-dc4ebb8bed6a">
-		<MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
-		<MediaTemplate EmbedCab="true"/>
+﻿<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs"
+	 xmlns:ui="http://wixtoolset.org/schemas/v4/wxs/ui">
+	
+	<Package
+		Name="Backup and Disk Utility"
+		Manufacturer="CFO"
+		Version="!(bind.fileVersion.BackupUtility.Wpf.exe)"
+		UpgradeCode="969e890d-7733-478e-9add-dc4ebb8bed6a"
+		Compressed="yes"
+		Scope="perMachine">
 
-		<Feature Id="Main">
+		<Icon Id="ProductIcon" SourceFile="$(var.ProjectDir)9069634_data_lock_icon.ico"/>
+		<Property Id="ARPPRODUCTICON" Value="ProductIcon"/>
+		<!--<Property Id="ARPHELPLINK" Value="http://www.ladycycle.com"/>
+		<Property Id="ARPURLINFOABOUT" Value="http://www.ladycycle.com"/>-->
+		<Property Id="ARPNOREPAIR" Value="1"/>
+
+		<MajorUpgrade DowngradeErrorMessage="!(loc.DowngradeError)" />
+
+		<MediaTemplate EmbedCab="true"/>
+		
+		<!-- UI -->
+
+		<ui:WixUI Id="WixUI_InstallDir" InstallDirectory="INSTALLFOLDER" />
+		<WixVariable Id="WixUILicenseRtf" Value="$(var.ProjectDir)EULA.rtf" />
+		<!--<WixVariable Id="WixUIBannerBmp" Value="$(var.ProjectDir)TopBanner.png"/>
+		<WixVariable Id="WixUIDialogBmp" Value="$(var.ProjectDir)BackgroundImage.png"/>-->
+		<Property Id="WIXUI_EXITDIALOGOPTIONALTEXT" Value="!(loc.ThankYouForInstalling)" />
+
+		<!-- Feature definition -->
+		
+		<Feature Id="ProductFeature" Title="[ProductName]" Level="1">
 			<ComponentGroupRef Id="ProductComponents" />
+			<!-- Harvested Files -->
 			<ComponentGroupRef Id="PublishedFiles" />
+			<ComponentRef Id="ApplicationShortcuts"/>
 		</Feature>
 	</Package>
 </Wix>

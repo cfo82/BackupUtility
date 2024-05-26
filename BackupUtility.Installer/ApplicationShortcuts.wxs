@@ -1,0 +1,13 @@
+<Wix xmlns="http://wixtoolset.org/schemas/v4/wxs">
+	<Fragment>
+		<StandardDirectory Id="ProgramMenuFolder">
+			<Directory Id="ProgramMenuSubFolder" Name="!(bind.Property.ProductName)">
+				<Component Id="ApplicationShortcuts" Guid="D98B2825-BFC1-41EB-A4A7-132819A648FF">
+					<Shortcut Id="PROGRAMSHORTCUT" Name="!(bind.Property.ProductName)" Description="!(bind.Property.ProductName)" Target="[INSTALLFOLDER]BackupUtility.Wpf.exe" WorkingDirectory="INSTALLFOLDER"/>
+					<RegistryValue Root="HKCU" Key="Software\!(bind.Property.Manufacturer)\!(bind.Property.ProductName)" Name="installed" Type="integer" Value="1" KeyPath="yes"/>
+					<RemoveFolder Id="ProgramMenuSubfolder" On="uninstall"/>
+				</Component>
+			</Directory>
+		</StandardDirectory>
+	</Fragment>
+</Wix>

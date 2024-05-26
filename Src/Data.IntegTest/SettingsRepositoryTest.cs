@@ -3,38 +3,13 @@ namespace Data.IntegTest;
 using System.Security.Cryptography;
 using BackupUtilities.Data.Interfaces;
 using BackupUtilities.Data.Repositories;
-using Microsoft.Data.Sqlite;
 
 /// <summary>
 /// This class is used to test the <see cref="SettingsRepository"/> class.
 /// </summary>
 [TestClass]
-public class SettingsRepositoryTest
+public class SettingsRepositoryTest : InMemoryDbIntegrationTestBase
 {
-    private DbContextData? _dbContext = null;
-
-    /// <summary>
-    /// Initialize a test: Setup a new temporary database.
-    /// </summary>
-    /// <returns>A task for async programming.</returns>
-    [TestInitialize]
-    public async Task InitializeTemporaryDatabaseAsync()
-    {
-        _dbContext = new DbContextData(":memory:");
-        await _dbContext.InitAsync();
-    }
-
-    /// <summary>
-    /// Deletes the temporary database that has been created for the test.
-    /// </summary>
-    [TestCleanup]
-    public void CleanupTemporaryDatabase()
-    {
-        _dbContext?.Dispose();
-        _dbContext = null;
-        SqliteConnection.ClearAllPools();
-    }
-
     /// <summary>
     /// Test that empty settings are created when requested.
     /// </summary>
@@ -43,8 +18,7 @@ public class SettingsRepositoryTest
     public async Task Test_GetSettingsFromEmptyDb_ReturnsDefaultSettings()
     {
         // Arrange
-        Assert.IsNotNull(_dbContext);
-        var sut = new SettingsRepository(_dbContext);
+        var sut = new SettingsRepository(DbContext);
 
         // Act
         var settings = await sut.GetSettingsAsync(null);
@@ -64,8 +38,7 @@ public class SettingsRepositoryTest
     public async Task Test_UpdateSettingsAsync_Updated()
     {
         // Arrange
-        Assert.IsNotNull(_dbContext);
-        var sut = new SettingsRepository(_dbContext);
+        var sut = new SettingsRepository(DbContext);
         var settings = new Settings()
         {
             SettingsId = 1,
